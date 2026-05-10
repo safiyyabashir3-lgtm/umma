@@ -1,4 +1,5 @@
 import os
+import json
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 from supabase import create_client
@@ -16,54 +17,147 @@ supabase = create_client(
     os.getenv("SUPABASE_KEY")
 )
 
-def get_embedding(text: str) -> list:
-    response = client.embeddings.create(
-        input=text,
-        model="text-embedding-3-small"
+DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT")
+
+# Global retrieval log — reset each request
+_retrieval_log = []
+
+def get_retrieval_log():
+    return _retrieval_log.copy()
+
+def clear_retrieval_log():
+    _retrieval_log.clear()
+
+
+def select_topics(
+    conversation: list,
+    stage: str,
+    intent: str,
+    reported_symptoms: list
+) -> list:
+    subcategory = "pregnancy" if "pregnancy" in intent else "child" if "child" in intent else "general"
+
+    response = client.chat.completions.create(
+        model=DEPLOYMENT,
+        messages=[
+            {
+                "role": "system",
+                "content": f"""You are a medical knowledge retrieval specialist for a Nigerian maternal and child health app.
+Given a conversation, clinical stage, and reported symptoms, decide which medical topics to retrieve.
+
+Current stage: {stage}
+Intent: {intent}
+Subcategory: {subcategory}
+Reported symptoms: {reported_symptoms}
+
+Rules:
+- For triage: return topics matching all reported symptoms
+- For disease_reasoning: return topics for all reported symptoms AND all plausible differential diagnoses given the Nigerian context and conversation — be comprehensive, do not miss conditions
+- For management: return topics for the most likely conditions and all reported symptoms
+- Always reason about Nigerian disease prevalence when selecting differentials
+- Return as many topics as genuinely needed — do not artificially limit
+- Topics should be single words or short phrases that match medical condition or symptom names
+- Prioritise completeness over brevity for disease_reasoning stage
+
+Return JSON only:
+{{"topics": ["topic1", "topic2", "topic3"]}}"""
+            },
+            {
+                "role": "user",
+                "content": f"Conversation: {json.dumps(conversation[-6:])}"
+            }
+        ],
+        temperature=0,
+        max_tokens=100
     )
-    return response.data[0].embedding
 
-def retrieve(
-    query: str,
-    category: str,
-    topic: str = None,
-    subcategory: str = None,
-    symptoms: list = None,
-    top_k: int = 5
-) -> str:
-    embedding = get_embedding(query)
-
-    params = {
-        "query_embedding": embedding,
-        "match_category": category,
-        "match_count": top_k
-    }
-
-    if topic:
-        params["match_topic"] = topic
-    if subcategory:
-        params["match_subcategory"] = subcategory
-
+    raw = response.choices[0].message.content.strip()
     try:
-        result = supabase.rpc("match_documents", params).execute()
-        chunks = result.data or []
+        clean = raw.replace("```json", "").replace("```", "").strip()
+        result = json.loads(clean)
+        return result.get("topics", reported_symptoms or ["general"])
+    except:
+        return reported_symptoms or ["general"]
 
-        if not chunks:
-            return ""
 
-        if symptoms:
-            filtered = []
-            for chunk in chunks:
-                chunk_symptoms = chunk.get("symptom_verification") or []
-                if any(s.lower() in [cs.lower() for cs in chunk_symptoms] for s in symptoms):
-                    filtered.append(chunk)
-            chunks = filtered if filtered else chunks
+def fetch_files(
+    category: str,
+    topics: list,
+    subcategory: str = None
+) -> tuple:
+    """
+    Returns (content_string, list_of_filenames_retrieved)
+    """
+    all_contents = []
+    seen_files = set()
+    files_retrieved = []
 
-        return "\n\n---\n\n".join([c["content"] for c in chunks])
+    for topic in topics:
+        try:
+            query = supabase.table("documents")\
+                .select("content, file_name, topic")\
+                .eq("category", category)\
+                .eq("topic", topic)
 
-    except Exception as e:
-        print(f"RAG retrieval error: {e}")
-        return ""
+            if subcategory:
+                query = query.eq("subcategory", subcategory)
+
+            result = query.execute()
+
+            for doc in (result.data or []):
+                fname = doc.get("file_name", "")
+                if fname not in seen_files:
+                    seen_files.add(fname)
+                    files_retrieved.append(fname)
+                    all_contents.append(
+                        f"### FILE: {fname}\n\n{doc['content']}"
+                    )
+
+        except Exception as e:
+            print(f"Fetch error for topic {topic}: {e}")
+
+    # Fallback without subcategory
+    if not all_contents and subcategory:
+        for topic in topics:
+            try:
+                result = supabase.table("documents")\
+                    .select("content, file_name, topic")\
+                    .eq("category", category)\
+                    .eq("topic", topic)\
+                    .execute()
+
+                for doc in (result.data or []):
+                    fname = doc.get("file_name", "")
+                    if fname not in seen_files:
+                        seen_files.add(fname)
+                        files_retrieved.append(fname)
+                        all_contents.append(
+                            f"### FILE: {fname}\n\n{doc['content']}"
+                        )
+            except Exception as e:
+                print(f"Fallback fetch error for topic {topic}: {e}")
+
+    # Fallback — fetch all in category
+    if not all_contents:
+        try:
+            query = supabase.table("documents")\
+                .select("content, file_name")\
+                .eq("category", category)
+            if subcategory:
+                query = query.eq("subcategory", subcategory)
+            result = query.execute()
+            for doc in (result.data or []):
+                fname = doc.get("file_name", "")
+                if fname not in seen_files:
+                    seen_files.add(fname)
+                    files_retrieved.append(fname)
+                    all_contents.append(
+                        f"### FILE: {fname}\n\n{doc['content']}"
+                    )
+        except Exception as e:
+            print(f"Category fallback error: {e}")
+
+    return "\n\n========\n\n".join(all_contents), files_retrieved
 
 
 def retrieve_for_stage(
@@ -71,83 +165,65 @@ def retrieve_for_stage(
     query: str,
     intent: str,
     topic: str = None,
-    symptoms: list = None
+    symptoms: list = None,
+    conversation: list = None
 ) -> str:
+    global _retrieval_log
+    _retrieval_log = []
+
+    symptoms = symptoms or []
+    conversation = conversation or [{"role": "user", "content": query}]
+
     subcategory = None
     if "pregnancy" in intent:
         subcategory = "pregnancy"
     elif "child" in intent:
         subcategory = "child"
 
+    topics = select_topics(
+        conversation=conversation,
+        stage=stage,
+        intent=intent,
+        reported_symptoms=symptoms
+    )
+
+    print(f"RAG: stage={stage} | topics={topics} | subcategory={subcategory}")
+
     if stage == "triage":
-        return retrieve(
-            query=query,
-            category="symptoms",
-            topic=topic,
-            subcategory=subcategory,
-            symptoms=symptoms,
-            top_k=5
-        )
+        content, files = fetch_files("symptoms", topics, subcategory)
+        _retrieval_log.append({"category": "symptoms", "files": files})
+        return content
 
     elif stage == "disease_reasoning":
-        return retrieve(
-            query=query,
-            category="disease",
-            topic=topic,
-            subcategory=subcategory,
-            symptoms=symptoms,
-            top_k=5
-        )
+        disease_content, disease_files = fetch_files("disease", topics, subcategory)
+        symptom_content, symptom_files = fetch_files("symptoms", topics, subcategory)
+        _retrieval_log.append({"category": "disease", "files": disease_files})
+        _retrieval_log.append({"category": "symptoms", "files": symptom_files})
+        return disease_content + "\n\n========\n\n" + symptom_content
 
     elif stage == "management":
-        disease_context = retrieve(
-            query=query,
-            category="disease",
-            topic=topic,
-            subcategory=subcategory,
-            symptoms=symptoms,
-            top_k=3
-        )
-        care_context = retrieve(
-            query=query,
-            category="symptom_care",
-            topic=topic,
-            subcategory=subcategory,
-            symptoms=symptoms,
-            top_k=3
-        )
-        return disease_context + "\n\n---\n\n" + care_context
+        disease_content, disease_files = fetch_files("disease", topics, subcategory)
+        care_content, care_files = fetch_files("symptom_care", topics, subcategory)
+        _retrieval_log.append({"category": "disease", "files": disease_files})
+        _retrieval_log.append({"category": "symptom_care", "files": care_files})
+        return disease_content + "\n\n========\n\n" + care_content
 
     elif stage == "medication":
-        return retrieve(
-            query=query,
-            category="medication",
-            topic=topic,
-            symptoms=symptoms,
-            top_k=5
-        )
+        content, files = fetch_files("medication", topics, None)
+        _retrieval_log.append({"category": "medication", "files": files})
+        return content
 
-    elif stage == "pregnancy_info":
-        return retrieve(
-            query=query,
-            category="pregnancy_education",
-            topic=topic,
-            top_k=5
-        )
+    elif stage in ["pregnancy_info", "pregnancy_education"]:
+        content, files = fetch_files("pregnancy_education", topics, "pregnancy")
+        _retrieval_log.append({"category": "pregnancy_education", "files": files})
+        return content
 
-    elif stage == "child_health_info":
-        return retrieve(
-            query=query,
-            category="child_health_education",
-            topic=topic,
-            top_k=5
-        )
+    elif stage in ["child_health_info", "child_health_education"]:
+        content, files = fetch_files("child_health_education", topics, "child")
+        _retrieval_log.append({"category": "child_health_education", "files": files})
+        return content
 
     else:
-        return retrieve(
-            query=query,
-            category="symptoms",
-            topic=topic,
-            subcategory=subcategory,
-            top_k=5
-        )
+        content, files = fetch_files("symptoms", topics, subcategory)
+        _retrieval_log.append({"category": "symptoms", "files": files})
+        return content

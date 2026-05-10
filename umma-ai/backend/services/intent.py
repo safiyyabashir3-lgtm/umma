@@ -1,8 +1,8 @@
-from openai import AzureOpenAI
 import os
+from openai import AzureOpenAI
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv("/workspaces/umma/umma-ai/.env")
 
 client = AzureOpenAI(
     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
@@ -33,11 +33,13 @@ Classify the user message into exactly one of these intents:
 {', '.join(INTENTS)}
 
 Rules:
-- If the message describes a symptom in a pregnant woman, return: pregnancy_symptom
-- If the message describes a symptom in a child, return: child_symptom
-- If the message asks about medicine safety, return: medication_safety
-- If it sounds like an emergency, return: emergency
-- Otherwise classify as best fits
+- If the message describes a symptom in a pregnant woman: pregnancy_symptom
+- If the message describes a symptom in a child: child_symptom
+- If the message asks about medicine safety: medication_safety
+- If it sounds like an emergency: emergency
+- If asking about pregnancy information: pregnancy_info
+- If asking about child health information: child_health_info
+- Otherwise: general_health
 
 Respond with ONLY the intent label. Nothing else."""
             },
