@@ -54,10 +54,11 @@ Rules:
 - For triage: return topics matching all reported symptoms
 - For disease_reasoning: return topics for all reported symptoms AND all plausible differential diagnoses given the Nigerian context and conversation — be comprehensive, do not miss conditions
 - For management: return topics for the most likely conditions and all reported symptoms
-- Always reason about Nigerian disease prevalence when selecting differentials
-- Return as many topics as genuinely needed — do not artificially limit
-- Topics should be single words or short phrases that match medical condition or symptom names
-- Prioritise completeness over brevity for disease_reasoning stage
+- Only suggest conditions relevant to Nigerian maternal and child health context
+- Do not suggest conditions extremely rare in Nigeria such as dengue, chikungunya, COVID-19, influenza
+- Focus on: malaria, typhoid, UTI, anaemia, preeclampsia, pneumonia, sepsis, malnutrition and other common Nigerian conditions
+- Return as many genuinely relevant topics as needed
+- Topics should be single words or short phrases matching medical condition names
 
 Return JSON only:
 {{"topics": ["topic1", "topic2", "topic3"]}}"""
@@ -195,11 +196,24 @@ def retrieve_for_stage(
         return content
 
     elif stage == "disease_reasoning":
-        disease_content, disease_files = fetch_files("disease", topics, subcategory)
+        # Retrieve ALL disease files for subcategory at once
+        try:
+            q = supabase.table("documents").select("content, file_name").eq("category", "disease")
+            if subcategory:
+                q = q.eq("subcategory", subcategory)
+            all_disease = q.execute()
+            all_disease_names = [d["file_name"] for d in (all_disease.data or [])]
+            all_disease_content = "\n\n========\n\n".join([
+                f"### FILE: {d['file_name']}\n\n{d['content']}"
+                for d in (all_disease.data or [])
+            ])
+        except Exception as e:
+            print(f"All disease fetch error: {e}")
+            all_disease_content, all_disease_names = "", []
         symptom_content, symptom_files = fetch_files("symptoms", topics, subcategory)
-        _retrieval_log.append({"category": "disease", "files": disease_files})
-        _retrieval_log.append({"category": "symptoms", "files": symptom_files})
-        return disease_content + "\n\n========\n\n" + symptom_content
+        _retrieval_log.append({"category": "disease (all)", "files": all_disease_names})
+        _retrieval_log.append({"category": "symptoms", "files": symptom_files[1] if isinstance(symptom_files, tuple) else symptom_files})
+        return all_disease_content + "\n\n========\n\n" + symptom_content
 
     elif stage == "management":
         disease_content, disease_files = fetch_files("disease", topics, subcategory)
