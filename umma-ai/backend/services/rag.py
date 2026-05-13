@@ -170,7 +170,6 @@ def retrieve_for_stage(
     conversation: list = None
 ) -> str:
     global _retrieval_log
-    _retrieval_log = []
 
     symptoms = symptoms or []
     conversation = conversation or [{"role": "user", "content": query}]

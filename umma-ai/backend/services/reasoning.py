@@ -5,7 +5,7 @@ from openai import AzureOpenAI
 from supabase import create_client
 from prompts.system_prompt import UMMA_SYSTEM_PROMPT
 from prompts.reasoning_prompts import DISEASE_REASONING_PROMPT, MANAGEMENT_PROMPT
-from services.rag import retrieve_for_stage
+from services.rag import retrieve_for_stage, clear_retrieval_log
 from services.language import (
     get_user_language,
     language_instruction,
@@ -96,12 +96,30 @@ def call_llm(messages: list, temperature: float = 0.3, max_tokens: int = 700) ->
     return response.choices[0].message.content.strip()
 
 
+CONTENT_FILTER_FALLBACK = "__CONTENT_FILTER_BLOCKED__"
+
+def call_llm_safe(messages: list, temperature: float = 0.3, max_tokens: int = 700) -> str:
+    try:
+        return call_llm(messages, temperature=temperature, max_tokens=max_tokens)
+    except Exception as e:
+        if "content_filter" in str(e) or "ResponsibleAI" in str(e) or "400" in str(e):
+            print(f"Content filter triggered on LLM call: {e}")
+            return CONTENT_FILTER_FALLBACK
+        raise
+
 def call_llm_json(messages: list) -> dict:
-    raw = call_llm(messages, temperature=0, max_tokens=600)
+    try:
+        raw = call_llm(messages, temperature=0, max_tokens=600)
+    except Exception as e:
+        if "content_filter" in str(e) or "ResponsibleAI" in str(e) or "400" in str(e):
+            print(f"Content filter triggered on JSON call: {e}")
+            return {"__content_filtered": True}
+        raise
     try:
         clean = raw.replace("```json", "").replace("```", "").strip()
         return json.loads(clean)
-    except:
+    except Exception as e:
+        print(f"call_llm_json parse failed. Error: {e}. Raw response: {raw[:300]}")
         return {}
 
 
@@ -114,6 +132,7 @@ def process_message(
     rag_debug = {"category": "—", "topic": "—", "chunks": []}
 
     def do_retrieve(stage, query, intent, topic=None, symptoms=None):
+        clear_retrieval_log()
         context = retrieve_for_stage(
             stage=stage,
             conversation=full_conversation,
@@ -217,25 +236,50 @@ Clinical knowledge: {rag_context}
 Triage questions asked: {state['questions_asked']}
 Maximum triage questions: {MAX_TRIAGE_QUESTIONS}
 
-Check for emergency red flags ONLY. Do NOT give management advice yet.
+Your job: Check for emergency red flags ONLY. Do NOT give management advice. Do NOT start disease reasoning.
 
-Rules:
-- If ANY red flag present — is_emergency: true immediately
-- Ask ONE focused red flag question if under limit and flags not yet excluded
-- If no red flags and at limit — move_to_disease_reasoning: true
-- Never ask about something already answered
-- Be warm
+EMERGENCY RED FLAGS — escalate immediately if any are present:
+- Heavy vaginal bleeding
+- Severe headache with blurred vision or spots
+- No fetal movement
+- Seizures or convulsions
+- Difficulty breathing at rest
+- High fever in child under 3 months
+- Child unresponsive or unable to drink
+- Severe vomiting unable to keep any fluid down
+
+QUESTION RULES:
+- Ask ONE question at a time only
+- Never ask about something already answered in the conversation
+- If ANY red flag already confirmed in conversation — is_emergency: true immediately
+- If no red flags confirmed and under question limit — ask the single highest-yield red flag question remaining
+- If no red flags and at question limit — move_to_disease_reasoning: true
+
+HOW TO FORMAT next_question — MANDATORY 3-PART STRUCTURE:
+Part 1: One sentence that responds to what she just said — not repeating or summarising her symptoms back to her, but showing you understood. A brief human reaction. Example: Headache and fever together in pregnancy always deserve careful attention.
+Part 2: One sentence explaining what you are checking for in plain language.
+Part 3: One question only.
 
 Return JSON only:
 {{
   "is_emergency": true or false,
-  "emergency_reason": "reason if emergency, null otherwise",
+  "emergency_reason": "plain language reason if emergency, null otherwise",
   "needs_more_info": true or false,
-  "next_question": "one warm focused triage question if needed, null otherwise",
+  "next_question": "structured 3-part question if needed, null otherwise",
   "move_to_disease_reasoning": true or false
 }}
 """}
         ])
+
+        if triage_result.get("__content_filtered"):
+            fallback = (
+                "I am sorry, I was not able to process your message properly just now. "
+                "Please try describing your symptoms again, or go to your nearest clinic if you are worried. "
+                "If you have heavy bleeding, fits, difficulty breathing, or your baby has stopped moving, "
+                "go to hospital immediately."
+            )
+            save_message(session_id, "assistant", fallback)
+            return fallback, rag_debug
 
         if triage_result.get("is_emergency"):
             state["stage"] = "concluded"
@@ -245,10 +289,21 @@ Return JSON only:
             response = call_llm([
                 {"role": "system", "content": UMMA_SYSTEM_PROMPT},
                 {"role": "user", "content": f"""
-Emergency. Reason: {triage_result.get('emergency_reason')}
+A woman has a medical emergency.
+Emergency reason: {triage_result.get('emergency_reason')}
 Symptoms: {reported_symptoms}
-Warm urgent message. Do not name diagnosis.
-Tell her to go to hospital immediately.
+
+YOUR RESPONSE MUST:
+1. In one sentence — acknowledge what she is experiencing. Name her specific symptom. Do not be generic.
+2. In one sentence — tell her plainly that what she is describing is serious and needs immediate hospital care.
+3. Give ONE clear instruction: go to hospital now. Tell her there is no safe home management for this.
+4. Tell her what to do in the next 5 minutes — call someone, do not go alone, go to the nearest facility with maternity or emergency care.
+5. End with the single most important warning sign to watch for on the way.
+
+DO NOT give home management advice.
+DO NOT name any diagnosis.
+DO NOT use hollow reassuring phrases.
+DO NOT make it longer than it needs to be — she needs to act, not read.
 {lang_instruction}
 """}
             ])
@@ -295,6 +350,15 @@ Tell her to go to hospital immediately.
                 max_questions=MAX_REASONING_QUESTIONS
             )}
         ])
+
+        if reasoning_result.get("__content_filtered"):
+            fallback = (
+                "I am sorry, I was not able to process your message properly just now. "
+                "Please try describing your symptoms again in different words, or visit your nearest clinic if you are worried. "
+                "If anything feels very serious or suddenly worse, please go to hospital immediately."
+            )
+            save_message(session_id, "assistant", fallback)
+            return fallback, rag_debug
 
         questions_so_far = state["questions_asked"]
         needs_more = reasoning_result.get("needs_more_info", False)
