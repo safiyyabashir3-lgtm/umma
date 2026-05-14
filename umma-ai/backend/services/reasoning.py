@@ -1,10 +1,12 @@
 import os
 import json
+import time
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 from supabase import create_client
 from prompts.system_prompt import UMMA_SYSTEM_PROMPT
-from prompts.reasoning_prompts import DISEASE_REASONING_PROMPT, MANAGEMENT_PROMPT
+from prompts.reasoning_prompts import DISEASE_REASONING_PROMPT, MANAGEMENT_PROMPT, TRIAGE_PROMPT  # FIX: import TRIAGE_PROMPT
 from services.rag import retrieve_for_stage, clear_retrieval_log
 from services.language import (
     get_user_language,
@@ -33,6 +35,20 @@ MAX_TRIAGE_QUESTIONS = 3
 MIN_REASONING_QUESTIONS = 2
 MAX_REASONING_QUESTIONS = 5
 
+# Safe fallback messages — used when LLM calls fail or return unusable output
+TRIAGE_SAFE_FALLBACK = (
+    "I am sorry, I was not able to process your message properly just now. "
+    "Please try describing your symptoms again, or go to your nearest clinic if you are worried. "
+    "If you have heavy bleeding, fits, difficulty breathing, or your baby has stopped moving, "
+    "go to hospital immediately."
+)
+
+REASONING_SAFE_FALLBACK = (
+    "I am sorry, I was not able to process your message properly just now. "
+    "Please try describing your symptoms again in different words, or visit your nearest clinic if you are worried. "
+    "If anything feels very serious or suddenly worse, please go to hospital immediately."
+)
+
 
 def get_clinical_state(session_id: str) -> dict:
     try:
@@ -42,15 +58,16 @@ def get_clinical_state(session_id: str) -> dict:
             .execute()
         if result.data:
             return result.data[0]
-    except:
-        pass
+    except Exception as e:
+        print(f"Error reading clinical state for session {session_id}: {e}")
     return None
 
 
 def save_clinical_state(session_id: str, state: dict):
     try:
         existing = get_clinical_state(session_id)
-        state["updated_at"] = "now()"
+        # FIX: use a real UTC timestamp string, not the literal string "now()"
+        state["updated_at"] = datetime.now(timezone.utc).isoformat()
         if existing:
             supabase.table("clinical_state")\
                 .update(state)\
@@ -62,7 +79,7 @@ def save_clinical_state(session_id: str, state: dict):
                 .insert(state)\
                 .execute()
     except Exception as e:
-        print(f"Error saving clinical state: {e}")
+        print(f"Error saving clinical state for session {session_id}: {e}")
 
 
 def get_conversation_history(session_id: str) -> list:
@@ -73,7 +90,8 @@ def get_conversation_history(session_id: str) -> list:
             .order("created_at")\
             .execute()
         return result.data or []
-    except:
+    except Exception as e:
+        print(f"Error reading conversation history for session {session_id}: {e}")
         return []
 
 
@@ -85,7 +103,7 @@ def save_message(session_id: str, role: str, content: str):
             "content": content
         }).execute()
     except Exception as e:
-        print(f"Error saving message: {e}")
+        print(f"Error saving message for session {session_id}: {e}")
 
 
 def call_llm(messages: list, temperature: float = 0.3, max_tokens: int = 700) -> str:
@@ -100,20 +118,27 @@ def call_llm(messages: list, temperature: float = 0.3, max_tokens: int = 700) ->
 
 CONTENT_FILTER_FALLBACK = "__CONTENT_FILTER_BLOCKED__"
 
+
+# FIX: call_llm_safe is now the function used for ALL clinical text responses
+# Previously it was defined but never called — every clinical call used call_llm directly,
+# meaning content filter errors crashed the request with no fallback response.
 def call_llm_safe(messages: list, temperature: float = 0.3, max_tokens: int = 700) -> str:
     try:
         return call_llm(messages, temperature=temperature, max_tokens=max_tokens)
     except Exception as e:
-        if "content_filter" in str(e) or "ResponsibleAI" in str(e) or "400" in str(e):
+        err = str(e)
+        if "content_filter" in err or "ResponsibleAI" in err or "400" in err:
             print(f"Content filter triggered on LLM call: {e}")
             return CONTENT_FILTER_FALLBACK
         raise
+
 
 def call_llm_json(messages: list) -> dict:
     try:
         raw = call_llm(messages, temperature=0, max_tokens=600)
     except Exception as e:
-        if "content_filter" in str(e) or "ResponsibleAI" in str(e) or "400" in str(e):
+        err = str(e)
+        if "content_filter" in err or "ResponsibleAI" in err or "400" in err:
             print(f"Content filter triggered on JSON call: {e}")
             return {"__content_filtered": True}
         raise
@@ -122,7 +147,24 @@ def call_llm_json(messages: list) -> dict:
         return json.loads(clean)
     except Exception as e:
         print(f"call_llm_json parse failed. Error: {e}. Raw response: {raw[:300]}")
-        return {}
+        # FIX: return a sentinel so callers can detect parse failure explicitly,
+        # rather than an empty dict that silently passes all .get() safety checks
+        return {"__parse_failed": True}
+
+
+# FIX: triage_result_is_safe checks that the result is actionable before use.
+# Previously, an empty dict from a parse failure would pass all .get() checks
+# with falsy values, causing triage to be silently skipped and the user to fall
+# through to disease reasoning with no emergency check performed.
+def triage_result_is_safe(result: dict) -> bool:
+    if not result:
+        return False
+    if result.get("__content_filtered") or result.get("__parse_failed"):
+        return False
+    # Must have at least is_emergency as an explicit key
+    if "is_emergency" not in result:
+        return False
+    return True
 
 
 def process_message(
@@ -133,11 +175,15 @@ def process_message(
 ) -> tuple:
     rag_debug = {"category": "—", "topic": "—", "chunks": []}
 
-    def do_retrieve(stage, query, intent, topic=None, symptoms=None):
+    # FIX: full_conversation is now passed explicitly into do_retrieve as a parameter.
+    # Previously do_retrieve was a closure that referenced full_conversation from the
+    # outer scope — defined before full_conversation was assigned, which worked due to
+    # Python late binding but was fragile and would silently break if code was reordered.
+    def do_retrieve(stage, query, intent, conversation, topic=None, symptoms=None):
         clear_retrieval_log()
         context = retrieve_for_stage(
             stage=stage,
-            conversation=full_conversation,
+            conversation=conversation,
             query=query,
             intent=intent,
             topic=topic,
@@ -179,22 +225,28 @@ def process_message(
 
     # Step 4 — Non-symptom intents
     if intent in ["pregnancy_info", "child_health_info", "general_health"]:
-        rag_context = do_retrieve(intent, message, intent)
-        response = call_llm([
+        rag_context = do_retrieve(intent, message, intent, full_conversation)
+        # FIX: use call_llm_safe so content filter errors return a fallback, not a crash
+        response = call_llm_safe([
             {"role": "system", "content": UMMA_SYSTEM_PROMPT + f"\n\n{lang_instruction}"},
             *history_messages,
             {"role": "user", "content": f"User message: {message}\nRelevant knowledge: {rag_context}\n{lang_instruction}"}
         ])
+        if response == CONTENT_FILTER_FALLBACK:
+            response = REASONING_SAFE_FALLBACK
         save_message(session_id, "assistant", response)
         return response, rag_debug
 
     if intent == "medication_safety":
-        rag_context = do_retrieve("medication", message, intent)
-        response = call_llm([
+        rag_context = do_retrieve("medication", message, intent, full_conversation)
+        # FIX: use call_llm_safe
+        response = call_llm_safe([
             {"role": "system", "content": UMMA_SYSTEM_PROMPT + f"\n\n{lang_instruction}"},
             *history_messages,
             {"role": "user", "content": f"User message: {message}\nMedication knowledge: {rag_context}\nNever give dosages. Always advise doctor or pharmacist.\n{lang_instruction}"}
         ])
+        if response == CONTENT_FILTER_FALLBACK:
+            response = REASONING_SAFE_FALLBACK
         save_message(session_id, "assistant", response)
         return response, rag_debug
 
@@ -226,76 +278,41 @@ Be thorough — include every symptom mentioned in any message."""
         *full_conversation
     ])
 
-    reported_symptoms = symptoms_result.get("symptoms", [])
+    reported_symptoms = symptoms_result.get("symptoms", []) if not symptoms_result.get("__parse_failed") else state.get("reported_symptoms", [])
     symptom_topic = symptoms_result.get("main_topic") or state.get("symptom_topic")
     state["reported_symptoms"] = reported_symptoms
     state["symptom_topic"] = symptom_topic
 
     # Step 7 — TRIAGE
     if state["stage"] == "triage":
-        rag_context = do_retrieve("triage", message, intent, symptom_topic, reported_symptoms)
+        rag_context = do_retrieve("triage", message, intent, full_conversation, symptom_topic, reported_symptoms)
 
         triage_result = call_llm_json([
             {"role": "system", "content": UMMA_SYSTEM_PROMPT},
-            {"role": "user", "content": f"""
-You are UMMA in TRIAGE stage for a Nigerian maternal/child health app.
-Full conversation: {json.dumps(full_conversation)}
-Reported symptoms: {reported_symptoms}
-Clinical knowledge: {rag_context}
-Triage questions asked: {state['questions_asked']}
-Maximum triage questions: {MAX_TRIAGE_QUESTIONS}
-
-Your job: Check for emergency red flags ONLY. Do NOT give management advice. Do NOT start disease reasoning.
-
-EMERGENCY RED FLAGS — escalate immediately if any are present:
-- Heavy vaginal bleeding
-- Severe headache with blurred vision or spots
-- No fetal movement
-- Seizures or convulsions
-- Difficulty breathing at rest
-- High fever in child under 3 months
-- Child unresponsive or unable to drink
-- Severe vomiting unable to keep any fluid down
-
-QUESTION RULES:
-- Ask ONE question at a time only
-- Never ask about something already answered in the conversation
-- If ANY red flag already confirmed in conversation — is_emergency: true immediately
-- If no red flags confirmed and under question limit — ask the single highest-yield red flag question remaining
-- If no red flags and at question limit — move_to_disease_reasoning: true
-
-HOW TO FORMAT next_question — MANDATORY 3-PART STRUCTURE:
-Part 1: One sentence that responds to what she just said — not repeating or summarising her symptoms back to her, but showing you understood. A brief human reaction. Example: Headache and fever together in pregnancy always deserve careful attention.
-Part 2: One sentence explaining what you are checking for in plain language.
-Part 3: One question only.
-
-Return JSON only:
-{{
-  "is_emergency": true or false,
-  "emergency_reason": "plain language reason if emergency, null otherwise",
-  "needs_more_info": true or false,
-  "next_question": "structured 3-part question if needed, null otherwise",
-  "move_to_disease_reasoning": true or false
-}}
-"""}
+            {"role": "user", "content": TRIAGE_PROMPT.format(  # FIX: use named constant from reasoning_prompts.py
+                full_conversation=json.dumps(full_conversation),
+                reported_symptoms=reported_symptoms,
+                rag_context=rag_context,
+                questions_asked=state["questions_asked"],
+                max_triage_questions=MAX_TRIAGE_QUESTIONS
+            )}
         ])
 
-        if triage_result.get("__content_filtered"):
-            fallback = (
-                "I am sorry, I was not able to process your message properly just now. "
-                "Please try describing your symptoms again, or go to your nearest clinic if you are worried. "
-                "If you have heavy bleeding, fits, difficulty breathing, or your baby has stopped moving, "
-                "go to hospital immediately."
-            )
-            save_message(session_id, "assistant", fallback)
-            return fallback, rag_debug
+        # FIX: explicitly validate the triage result before acting on it.
+        # An empty dict or parse failure previously fell through all checks silently,
+        # skipping the emergency gate and sending the user into disease reasoning
+        # without any red flag check having been performed.
+        if not triage_result_is_safe(triage_result):
+            save_message(session_id, "assistant", TRIAGE_SAFE_FALLBACK)
+            return TRIAGE_SAFE_FALLBACK, rag_debug
 
         if triage_result.get("is_emergency"):
             state["stage"] = "concluded"
             state["action_tier"] = "emergency"
             state["concluded"] = True
             save_clinical_state(session_id, state)
-            response = call_llm([
+            # FIX: use call_llm_safe for the emergency response
+            response = call_llm_safe([
                 {"role": "system", "content": UMMA_SYSTEM_PROMPT},
                 {"role": "user", "content": f"""
 A woman has a medical emergency.
@@ -316,6 +333,8 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
 {lang_instruction}
 """}
             ])
+            if response == CONTENT_FILTER_FALLBACK:
+                response = TRIAGE_SAFE_FALLBACK
             save_message(session_id, "assistant", response)
             return response, rag_debug
 
@@ -332,8 +351,6 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
 
     # Step 8 — DISEASE REASONING
     if state["stage"] == "disease_reasoning":
-        # Retrieve symptom files first (triage stage = symptoms category)
-        # Then retrieve disease files — do_retrieve must be called last to set correct debug info
         symptom_context = retrieve_for_stage(
             stage="triage",
             conversation=full_conversation,
@@ -343,7 +360,7 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
             symptoms=reported_symptoms
         )
         rag_context = do_retrieve(
-            "disease_reasoning", message, intent,
+            "disease_reasoning", message, intent, full_conversation,
             symptom_topic, reported_symptoms
         )
 
@@ -362,14 +379,9 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
             )}
         ])
 
-        if reasoning_result.get("__content_filtered"):
-            fallback = (
-                "I am sorry, I was not able to process your message properly just now. "
-                "Please try describing your symptoms again in different words, or visit your nearest clinic if you are worried. "
-                "If anything feels very serious or suddenly worse, please go to hospital immediately."
-            )
-            save_message(session_id, "assistant", fallback)
-            return fallback, rag_debug
+        if reasoning_result.get("__content_filtered") or reasoning_result.get("__parse_failed"):
+            save_message(session_id, "assistant", REASONING_SAFE_FALLBACK)
+            return REASONING_SAFE_FALLBACK, rag_debug
 
         questions_so_far = state["questions_asked"]
         needs_more = reasoning_result.get("needs_more_info", False)
@@ -383,7 +395,7 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
 
         if should_ask:
             state["questions_asked"] += 1
-            state["question_rationale"] = reasoning_result.get("question_rationale") or reasoning_result.get("question_rationale", "")
+            state["question_rationale"] = reasoning_result.get("question_rationale", "")
             state["active_differentials"] = reasoning_result.get("active_differentials", [])
             state["internal_diagnosis"] = reasoning_result.get("primary_diagnosis")
             state["secondary_diagnosis"] = reasoning_result.get("secondary_diagnosis")
@@ -393,7 +405,7 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
             save_message(session_id, "assistant", next_question)
             return next_question, rag_debug
 
-        # Save conclusion
+        # Conclude reasoning
         state["stage"] = "management"
         state["internal_diagnosis"] = reasoning_result.get("primary_diagnosis")
         state["secondary_diagnosis"] = reasoning_result.get("secondary_diagnosis")
@@ -407,12 +419,13 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
     # Step 9 — MANAGEMENT
     if state["stage"] in ["management", "concluded"]:
         rag_context = do_retrieve(
-            "management", message, intent,
+            "management", message, intent, full_conversation,
             state.get("symptom_topic"),
             state.get("reported_symptoms", [])
         )
 
-        response = call_llm([
+        # FIX: use call_llm_safe for the management response
+        response = call_llm_safe([
             {"role": "system", "content": UMMA_SYSTEM_PROMPT},
             {"role": "user", "content": MANAGEMENT_PROMPT.format(
                 full_conversation=json.dumps(full_conversation),
@@ -426,14 +439,18 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
                 lang_instruction=lang_instruction
             )}
         ])
-
+        if response == CONTENT_FILTER_FALLBACK:
+            response = REASONING_SAFE_FALLBACK
         save_message(session_id, "assistant", response)
         return response, rag_debug
 
     # Fallback
-    fallback = call_llm([
+    # FIX: use call_llm_safe
+    fallback = call_llm_safe([
         {"role": "system", "content": UMMA_SYSTEM_PROMPT},
         {"role": "user", "content": f"{message}\n\n{lang_instruction}"}
     ])
+    if fallback == CONTENT_FILTER_FALLBACK:
+        fallback = REASONING_SAFE_FALLBACK
     save_message(session_id, "assistant", fallback)
     return fallback, rag_debug

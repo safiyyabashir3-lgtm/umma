@@ -19,14 +19,24 @@ supabase = create_client(
 
 DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT")
 
-# Global retrieval log — reset each request
-_retrieval_log = []
+import threading
+
+# FIX: use thread-local storage instead of a module-level mutable list.
+# In an async FastAPI environment with concurrent requests, a shared global list
+# causes one request's retrieval log to bleed into another's debug output.
+# threading.local() gives each thread its own isolated log.
+_local = threading.local()
+
+def _get_log():
+    if not hasattr(_local, "retrieval_log"):
+        _local.retrieval_log = []
+    return _local.retrieval_log
 
 def get_retrieval_log():
-    return _retrieval_log.copy()
+    return _get_log().copy()
 
 def clear_retrieval_log():
-    _retrieval_log.clear()
+    _get_log().clear()
 
 
 def select_topics(
