@@ -30,27 +30,19 @@ class ChatResponse(BaseModel):
     debug: Optional[Dict[str, Any]] = None
 
 def get_active_intent(session_id: str) -> str:
+    """
+    Retrieves the stored intent from clinical_state.
+    No keyword matching — reads what was saved when the conversation started.
+    """
     try:
         result = supabase.table("clinical_state")\
-            .select("stage, concluded")\
+            .select("intent, concluded")\
             .eq("session_id", session_id)\
             .execute()
         if result.data:
             state = result.data[0]
-            if not state.get("concluded"):
-                result2 = supabase.table("messages")\
-                    .select("content")\
-                    .eq("session_id", session_id)\
-                    .order("created_at")\
-                    .limit(5)\
-                    .execute()
-                if result2.data:
-                    for msg in result2.data:
-                        content = msg["content"].lower()
-                        if "pregnant" in content or "pregnancy" in content or "month pregnant" in content:
-                            return "pregnancy_symptom"
-                        if "child" in content or "baby" in content or "year old" in content or "months old" in content:
-                            return "child_symptom"
+            if not state.get("concluded") and state.get("intent"):
+                return state.get("intent")
     except Exception as e:
         print(f"Error getting active intent: {e}")
     return None

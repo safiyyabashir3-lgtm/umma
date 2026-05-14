@@ -215,11 +215,25 @@ def retrieve_for_stage(
         return all_disease_content + "\n\n========\n\n" + symptom_content
 
     elif stage == "management":
-        disease_content, disease_files = fetch_files("disease", topics, subcategory)
+        # Retrieve ALL disease files for subcategory — same as disease_reasoning
+        # Management needs full disease context including severity and management sections
+        try:
+            q = supabase.table("documents").select("content, file_name").eq("category", "disease")
+            if subcategory:
+                q = q.eq("subcategory", subcategory)
+            all_disease = q.execute()
+            all_disease_names = [d["file_name"] for d in (all_disease.data or [])]
+            all_disease_content = "\n\n========\n\n".join([
+                f"### FILE: {d['file_name']}\n\n{d['content']}"
+                for d in (all_disease.data or [])
+            ])
+        except Exception as e:
+            print(f"Management disease fetch error: {e}")
+            all_disease_content, all_disease_names = "", []
         care_content, care_files = fetch_files("symptom_care", topics, subcategory)
-        _retrieval_log.append({"category": "disease", "files": disease_files})
+        _retrieval_log.append({"category": "disease (all)", "files": all_disease_names})
         _retrieval_log.append({"category": "symptom_care", "files": care_files})
-        return disease_content + "\n\n========\n\n" + care_content
+        return all_disease_content + "\n\n========\n\n" + care_content
 
     elif stage == "medication":
         content, files = fetch_files("medication", topics, None)

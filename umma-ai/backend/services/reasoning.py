@@ -8,6 +8,8 @@ from prompts.reasoning_prompts import DISEASE_REASONING_PROMPT, MANAGEMENT_PROMP
 from services.rag import retrieve_for_stage, clear_retrieval_log
 from services.language import (
     get_user_language,
+    save_user_language,
+    detect_language_choice,
     language_instruction,
     handle_first_message
 )
@@ -156,6 +158,12 @@ def process_message(
             return lang_response, rag_debug
         language = chosen_language
 
+    # Check if user is switching language mid-conversation
+    language_switch = detect_language_choice(message)
+    if language_switch and language_switch != language:
+        save_user_language(user_id, language_switch)
+        language = language_switch
+
     lang_instruction = language_instruction(language)
 
     # Step 2 — Save user message
@@ -195,6 +203,7 @@ def process_message(
     if not state:
         state = {
             "stage": "triage",
+            "intent": intent,
             "symptom_topic": None,
             "reported_symptoms": [],
             "internal_diagnosis": None,
@@ -323,10 +332,8 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
 
     # Step 8 — DISEASE REASONING
     if state["stage"] == "disease_reasoning":
-        rag_context = do_retrieve(
-            "disease_reasoning", message, intent,
-            symptom_topic, reported_symptoms
-        )
+        # Retrieve symptom files first (triage stage = symptoms category)
+        # Then retrieve disease files — do_retrieve must be called last to set correct debug info
         symptom_context = retrieve_for_stage(
             stage="triage",
             conversation=full_conversation,
@@ -334,6 +341,10 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
             intent=intent,
             topic=symptom_topic,
             symptoms=reported_symptoms
+        )
+        rag_context = do_retrieve(
+            "disease_reasoning", message, intent,
+            symptom_topic, reported_symptoms
         )
 
         reasoning_result = call_llm_json([

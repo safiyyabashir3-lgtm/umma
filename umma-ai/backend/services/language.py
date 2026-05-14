@@ -53,35 +53,40 @@ def save_user_language(user_id: str, language: str):
     except Exception as e:
         print(f"Error saving language: {e}")
 
-def detect_explicit_language_choice(message: str) -> str:
+def detect_language_choice(message: str) -> str:
     """
-    Only returns a language if user explicitly chose one.
-    Does not infer from general messages.
+    Uses GPT-4.1 to detect explicit language selection.
+    Handles English, Hausa, and mixed expressions naturally.
+    Returns 'en', 'ha', or None if no explicit choice made.
     """
-    msg = message.strip().lower()
+    try:
+        response = client.chat.completions.create(
+            model=DEPLOYMENT,
+            messages=[
+                {
+                    "role": "system",
+                    "content": """You detect whether a user is explicitly choosing a language.
+The app supports English and Hausa.
+Return JSON only: {"language": "en"} or {"language": "ha"} or {"language": null}
 
-    # Explicit English choices
-    if msg in ["english", "en", "inglish", "inglis"]:
-        return "en"
-
-    # Explicit Hausa choices
-    if msg in ["hausa", "ha", "hause"]:
-        return "ha"
-
-    # Check for switch requests mid-conversation
-    if any(phrase in msg for phrase in [
-        "switch to hausa", "change to hausa", "speak hausa",
-        "in hausa", "da hausa"
-    ]):
-        return "ha"
-
-    if any(phrase in msg for phrase in [
-        "switch to english", "change to english", "speak english",
-        "in english"
-    ]):
-        return "en"
-
-    return None
+Return "en" if the user is choosing English in any way — e.g. "English", "I want English", "speak English to me", "English please"
+Return "ha" if the user is choosing Hausa in any way — e.g. "Hausa", "Hausa ne", "da Hausa", "in Hausa", "Ina son Hausa"
+Return null if the message is not a language selection — e.g. "I have a fever", "hello", "what is malaria"
+Also return "en" or "ha" if user wants to switch language mid-conversation."""
+                },
+                {"role": "user", "content": message}
+            ],
+            temperature=0,
+            max_tokens=20
+        )
+        import json
+        raw = response.choices[0].message.content.strip()
+        clean = raw.replace("```json", "").replace("```", "").strip()
+        result = json.loads(clean)
+        lang = result.get("language")
+        return lang if lang in ["en", "ha"] else None
+    except:
+        return None
 
 def language_instruction(language: str) -> str:
     if language == "ha":
@@ -101,12 +106,12 @@ def handle_first_message(user_id: str, message: str) -> tuple:
     Called when user has no language preference yet.
     Returns (language, response) or (None, welcome_message)
     """
-    chosen = detect_explicit_language_choice(message)
+    chosen = detect_language_choice(message)
 
     if chosen == "en":
         save_user_language(user_id, "en")
         return "en", (
-            "Thank you! I will speak with you in English.\n\n"
+            "I will speak with you in English.\n\n"
             "I am UMMA, your trusted health companion for pregnancy "
             "and child health. How can I help you today?"
         )
@@ -114,10 +119,9 @@ def handle_first_message(user_id: str, message: str) -> tuple:
     if chosen == "ha":
         save_user_language(user_id, "ha")
         return "ha", (
-            "Nagode! Zan yi magana da ke cikin Hausa.\n\n"
+            "Zan yi magana da ke cikin Hausa.\n\n"
             "Ni UMMA ce, abokin lafiyar ku na lokacin juna biyu "
             "da lafiyar yara. Yaya zan iya taimaka muku yau?"
         )
 
-    # No explicit choice — show welcome and ask again
     return None, WELCOME_MESSAGE
