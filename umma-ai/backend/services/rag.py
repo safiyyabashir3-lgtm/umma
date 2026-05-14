@@ -179,8 +179,6 @@ def retrieve_for_stage(
     symptoms: list = None,
     conversation: list = None
 ) -> str:
-    global _retrieval_log
-
     symptoms = symptoms or []
     conversation = conversation or [{"role": "user", "content": query}]
 
@@ -201,7 +199,7 @@ def retrieve_for_stage(
 
     if stage == "triage":
         content, files = fetch_files("symptoms", topics, subcategory)
-        _retrieval_log.append({"category": "symptoms", "files": files})
+        _get_log().append({"category": "symptoms", "files": files})
         return content
 
     elif stage == "disease_reasoning":
@@ -220,8 +218,8 @@ def retrieve_for_stage(
             print(f"All disease fetch error: {e}")
             all_disease_content, all_disease_names = "", []
         symptom_content, symptom_files = fetch_files("symptoms", topics, subcategory)
-        _retrieval_log.append({"category": "disease (all)", "files": all_disease_names})
-        _retrieval_log.append({"category": "symptoms", "files": symptom_files[1] if isinstance(symptom_files, tuple) else symptom_files})
+        _get_log().append({"category": "disease (all)", "files": all_disease_names})
+        _get_log().append({"category": "symptoms", "files": symptom_files[1] if isinstance(symptom_files, tuple) else symptom_files})
         return all_disease_content + "\n\n========\n\n" + symptom_content
 
     elif stage == "management":
@@ -241,26 +239,26 @@ def retrieve_for_stage(
             print(f"Management disease fetch error: {e}")
             all_disease_content, all_disease_names = "", []
         care_content, care_files = fetch_files("symptom_care", topics, subcategory)
-        _retrieval_log.append({"category": "disease (all)", "files": all_disease_names})
-        _retrieval_log.append({"category": "symptom_care", "files": care_files})
+        _get_log().append({"category": "disease (all)", "files": all_disease_names})
+        _get_log().append({"category": "symptom_care", "files": care_files})
         return all_disease_content + "\n\n========\n\n" + care_content
 
     elif stage == "medication":
         content, files = fetch_files("medication", topics, None)
-        _retrieval_log.append({"category": "medication", "files": files})
+        _get_log().append({"category": "medication", "files": files})
         return content
 
     elif stage in ["pregnancy_info", "pregnancy_education"]:
         content, files = fetch_files("pregnancy_education", topics, "pregnancy")
-        _retrieval_log.append({"category": "pregnancy_education", "files": files})
+        _get_log().append({"category": "pregnancy_education", "files": files})
         return content
 
     elif stage in ["child_health_info", "child_health_education"]:
         content, files = fetch_files("child_health_education", topics, "child")
-        _retrieval_log.append({"category": "child_health_education", "files": files})
+        _get_log().append({"category": "child_health_education", "files": files})
         return content
 
     else:
         content, files = fetch_files("symptoms", topics, subcategory)
-        _retrieval_log.append({"category": "symptoms", "files": files})
+        _get_log().append({"category": "symptoms", "files": files})
         return content

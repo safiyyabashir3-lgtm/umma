@@ -148,6 +148,8 @@ Then list specific signs tailored to her symptoms. Always include:
 - Baby stopping moving (if pregnant)
 - Any sudden severe worsening
 
+{lang_instruction}
+
 ABSOLUTE RULES — THESE OVERRIDE EVERYTHING:
 - NEVER name any diagnosis
 - NEVER give specific medication doses
@@ -157,7 +159,6 @@ ABSOLUTE RULES — THESE OVERRIDE EVERYTHING:
 - NEVER use hollow phrases: Thank you for sharing, Thank you for your patience, I hope you feel better
 - If confidence is low or uncertain — say so clearly in Part 2
 - The safety net is always the last thing she reads
-{lang_instruction}
 """
 
 TRIAGE_PROMPT = """

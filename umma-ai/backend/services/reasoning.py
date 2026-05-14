@@ -66,7 +66,6 @@ def get_clinical_state(session_id: str) -> dict:
 def save_clinical_state(session_id: str, state: dict):
     try:
         existing = get_clinical_state(session_id)
-        # FIX: use a real UTC timestamp string, not the literal string "now()"
         state["updated_at"] = datetime.now(timezone.utc).isoformat()
         if existing:
             supabase.table("clinical_state")\
@@ -79,7 +78,10 @@ def save_clinical_state(session_id: str, state: dict):
                 .insert(state)\
                 .execute()
     except Exception as e:
-        print(f"Error saving clinical state for session {session_id}: {e}")
+        # Clinical state loss is a patient safety risk — log clearly and re-raise
+        # so the caller returns a safe fallback rather than continuing with stale state.
+        print(f"CRITICAL: Failed to save clinical state for session {session_id}: {e}")
+        raise RuntimeError(f"Clinical state save failed for session {session_id}") from e
 
 
 def get_conversation_history(session_id: str) -> list:
@@ -283,6 +285,17 @@ Be thorough — include every symptom mentioned in any message."""
     state["reported_symptoms"] = reported_symptoms
     state["symptom_topic"] = symptom_topic
 
+    # Helper defined at function scope so it is available in all stages,
+    # not just triage. A DB failure during any state save returns a safe
+    # fallback response rather than crashing with an UnboundLocalError.
+    def safe_save_state(s):
+        try:
+            save_clinical_state(session_id, s)
+        except RuntimeError:
+            save_message(session_id, "assistant", TRIAGE_SAFE_FALLBACK)
+            return False
+        return True
+
     # Step 7 — TRIAGE
     if state["stage"] == "triage":
         rag_context = do_retrieve("triage", message, intent, full_conversation, symptom_topic, reported_symptoms)
@@ -306,12 +319,13 @@ Be thorough — include every symptom mentioned in any message."""
             save_message(session_id, "assistant", TRIAGE_SAFE_FALLBACK)
             return TRIAGE_SAFE_FALLBACK, rag_debug
 
+
         if triage_result.get("is_emergency"):
             state["stage"] = "concluded"
             state["action_tier"] = "emergency"
             state["concluded"] = True
-            save_clinical_state(session_id, state)
-            # FIX: use call_llm_safe for the emergency response
+            if not safe_save_state(state): return TRIAGE_SAFE_FALLBACK, rag_debug
+            # use call_llm_safe for the emergency response
             response = call_llm_safe([
                 {"role": "system", "content": UMMA_SYSTEM_PROMPT},
                 {"role": "user", "content": f"""
@@ -341,13 +355,13 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
         if triage_result.get("needs_more_info") and state["questions_asked"] < MAX_TRIAGE_QUESTIONS:
             next_question = triage_result.get("next_question", "")
             state["questions_asked"] += 1
-            save_clinical_state(session_id, state)
+            if not safe_save_state(state): return TRIAGE_SAFE_FALLBACK, rag_debug
             save_message(session_id, "assistant", next_question)
             return next_question, rag_debug
 
         state["stage"] = "disease_reasoning"
         state["questions_asked"] = 0
-        save_clinical_state(session_id, state)
+        if not safe_save_state(state): return TRIAGE_SAFE_FALLBACK, rag_debug
 
     # Step 8 — DISEASE REASONING
     if state["stage"] == "disease_reasoning":
@@ -387,6 +401,27 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
         needs_more = reasoning_result.get("needs_more_info", False)
         next_question = reasoning_result.get("next_question")
 
+        # Floor enforcement: if under minimum, generate a fallback question
+        # rather than allowing the LLM to skip ahead with next_question=null.
+        if (
+            questions_so_far < MIN_REASONING_QUESTIONS
+            and not next_question
+            and questions_so_far < MAX_REASONING_QUESTIONS
+        ):
+            # LLM tried to conclude too early — ask it for a question explicitly
+            followup = call_llm_json([
+                {"role": "system", "content": UMMA_SYSTEM_PROMPT},
+                {"role": "user", "content": (
+                    f"You are mid-way through clinical reasoning for: {reported_symptoms}. "
+                    f"You have only asked {questions_so_far} questions but the minimum is {MIN_REASONING_QUESTIONS}. "
+                    f"Active differentials: {reasoning_result.get('active_differentials', [])}. "
+                    "You MUST ask one more clarifying question following the 3-part format. "
+                    'Return JSON only: {"next_question": "your 3-part question here", "question_rationale": "why"}'
+                )}
+            ])
+            if not followup.get("__parse_failed") and not followup.get("__content_filtered"):
+                next_question = followup.get("next_question")
+
         should_ask = (
             (needs_more or questions_so_far < MIN_REASONING_QUESTIONS)
             and questions_so_far < MAX_REASONING_QUESTIONS
@@ -401,7 +436,7 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
             state["secondary_diagnosis"] = reasoning_result.get("secondary_diagnosis")
             state["confidence_level"] = reasoning_result.get("confidence_level")
             state["action_tier"] = reasoning_result.get("action_tier")
-            save_clinical_state(session_id, state)
+            if not safe_save_state(state): return REASONING_SAFE_FALLBACK, rag_debug
             save_message(session_id, "assistant", next_question)
             return next_question, rag_debug
 
@@ -414,7 +449,7 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
         state["action_tier"] = reasoning_result.get("action_tier")
         state["question_rationale"] = reasoning_result.get("question_rationale")
         state["concluded"] = True
-        save_clinical_state(session_id, state)
+        if not safe_save_state(state): return REASONING_SAFE_FALLBACK, rag_debug
 
     # Step 9 — MANAGEMENT
     if state["stage"] in ["management", "concluded"]:
