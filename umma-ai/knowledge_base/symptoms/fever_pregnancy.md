@@ -1,198 +1,264 @@
-# SYMPTOM FILE: FEVER IN PREGNANCY
-## For UMMA AI Clinical Reasoning — Nigerian Context
-### Awaiting Clinician Verification
+# fever_pregnancy.md
+# UMMA Symptom File: Fever in Pregnancy
 
 ---
 
 ## SECTION 1: SYMPTOM VERIFICATION
 
-### Confirming the symptom
-Before proceeding, confirm the user actually has fever and not another symptom.
+**Confirm the symptom:**
+- Ask whether the woman feels hot, has been told she is hot by someone else, or has measured a temperature
+- Confirm gestational age — this file applies to all stages of pregnancy
+- A measured temperature of 37.5°C or above confirms fever; if no thermometer, feeling hot to touch with chills or sweating is sufficient for clinical purposes
 
-Ask ONE of these only if fever is not clearly stated:
-- Do you feel hot or does your body feel very warm?
-- Have you been shivering or feeling cold, then very hot?
+**Commonly confused with:**
+- Normal warmth from hot weather or heavy clothing — clarify with chills, sweating, or feeling unwell
+- Postpartum fever — use postpartum_fever.md if the woman has delivered within the last 6 weeks
+- Heat exhaustion — no true fever, but woman feels overheated; distinguish by presence of chills and systemic illness
 
-If fever is clearly stated by user — skip verification and proceed to triage immediately.
-
-### Symptoms that may be confused with fever
-- Feeling hot due to weather or exertion — no chills, no sweating episodes, resolves quickly
-- Hot flushes — brief, no systemic illness
+**Critical immediate checks:**
+- Gestational age: if under 20 weeks, consider infectious and miscarriage-related causes
+- If over 20 weeks, always screen for pre-eclampsia alongside infectious causes — both can present with feeling unwell
+- Duration of fever: fever lasting more than 2 days in pregnancy always escalates concern
+- Any fever in the third trimester with reduced fetal movement is an emergency
 
 ---
 
-## SECTION 2: TRIAGE
+## SECTION 2: TRIAGE — RED FLAGS
 
-### QUESTIONING RULES FOR TRIAGE
-- Ask ONE question at a time only
-- Maximum 3 triage questions before moving to disease reasoning
-- If user's opening message already contains red flag information — escalate immediately without asking further
-- Acknowledge what user said warmly before each question
-- Never repeat information the user has already given
+Escalate immediately if any of the following are present:
 
-### RED FLAGS — Escalate immediately if any present
-- Fever with seizure or convulsion
-- Fever with loss of consciousness or confusion
-- Fever with severe headache and blurry vision
-- Fever with heavy vaginal bleeding
-- Fever with no fetal movement
-- Fever with severe difficulty breathing
-- Fever with stiff neck
-- Feeling burning hot, unable to stand or walk
-- Fever with abdominal pain and foul vaginal discharge in third trimester
-
-### Triage question priority order
-Ask only what is not already known. Stop as soon as a red flag is confirmed.
-
-Priority 1: "Have you felt your baby moving today?" — if third trimester
-Priority 2: "Do you have a very severe headache or is your vision blurry?"
-Priority 3: "Are you having any difficulty breathing or chest pain?"
-
-### IF ANY RED FLAG CONFIRMED — Escalate immediately. Do not proceed.
-### IF NO RED FLAGS AFTER MAXIMUM 3 QUESTIONS — Proceed to Section 3.
+1. Fever with convulsions or loss of consciousness — cerebral malaria or eclampsia
+2. Fever with severe headache and neck stiffness — meningitis
+3. Fever with difficulty breathing or chest pain — severe malaria, pneumonia, or cardiac complication
+4. Fever with heavy vaginal bleeding — infected miscarriage or placental abruption with infection
+5. Fever with absent or significantly reduced fetal movement
+6. Fever with confusion, inability to recognize family, or bizarre behaviour
+7. Fever above 39.5°C at any gestational age
+8. Fever with inability to stand or walk unassisted
+9. Fever with severe vomiting and inability to keep any fluid down for more than 6 hours
+10. Fever with rigors (violent shaking chills) — high risk for severe malaria or sepsis
+11. Fever with foul-smelling vaginal discharge — intrauterine infection
+12. Fever in a woman with known HIV, sickle cell disease, or diabetes — higher risk for severe infection
+13. Caregiver or woman herself reports this is the sickest she has ever felt
+14. Any fever present for more than 48 hours without improvement
 
 ---
 
 ## SECTION 3: CLINICAL REASONING GUIDE
 
-### QUESTIONING RULES FOR DISEASE REASONING
-- Ask ONE question at a time only
-- Maximum 4 questions total across all disease reasoning
-- Use answers already given by user — do not re-ask
-- If pattern is already clear from user's story — reason confidently without asking all 4 questions
-- If pattern remains unclear after 4 questions — apply uncertainty rule
-- Always acknowledge user's answer warmly before next question
+---
 
-### NIGERIAN CONTEXT NOTE
-Malaria is endemic across Nigeria and must always be explored first. Never dismiss fever in pregnancy as trivial. Malaria can present without classic chills in pregnancy — do not rule it out based on absence of chills alone.
+### DISEASE 1: MALARIA
+**Nigerian priority level: HIGHEST**
+
+Malaria is the most common cause of fever in pregnancy in Nigeria and must always be the first differential considered. Pregnancy increases susceptibility and severity. Falciparum malaria is the dominant species.
+
+**Key differentiating features:**
+- Cyclical or intermittent fever with chills and sweating
+- Headache and body aches prominent
+- Anaemia signs: pallor of conjunctiva, lips, palms
+- History of recent outdoor exposure, no bednet use, or living in high-transmission area
+- Third trimester women at highest risk for severe malaria
+
+**Differentiating questions:**
+- Has the fever come in waves — feeling very cold then very hot then sweating?
+- Has she had malaria before, and does this feel the same?
+- Is she sleeping under a mosquito net?
+- Has she been taking any malaria prevention medication (IPTp)?
+- Has she noticed her eyes or palms looking pale?
+- Has she had any confusion, difficulty seeing, or seizures?
+
+**Confirm towards if:**
+- Cyclical fever pattern with rigors and sweating
+- Anaemia signs present
+- No bednet use or IPTp compliance
+- Headache and joint pains accompany fever
+- History of prior malaria episodes
+
+**Uncertainty note:**
+If malaria cannot be confirmed or excluded, treat as probable malaria and escalate to facility for RDT or blood film. Never withhold escalation pending laboratory confirmation in pregnancy.
 
 ---
 
-### DISEASE 1: MALARIA IN PREGNANCY
-Nigerian priority: HIGHEST — always explore first
+### DISEASE 2: URINARY TRACT INFECTION / PYELONEPHRITIS
+**Nigerian priority level: HIGH**
 
-Key differentiating features:
-- Chills or rigors alternating with sweating
-- Headache prominent
-- Vomiting or nausea
-- Episodic pattern of fever
+UTI is common in pregnancy and frequently ascends to kidney infection (pyelonephritis), which can trigger preterm labour and sepsis. Many women in Kano have silent bacteriuria that progresses undetected.
 
-Differentiating questions (ask only what user has not already told you):
-- "Are you feeling cold and shivery at times, then very hot and sweaty?"
-- "Do you have a headache along with the fever?"
-- "Are you feeling nauseous or have you been vomiting?"
-- "Have you been sleeping under a mosquito net?"
+**Key differentiating features:**
+- Burning or pain on urination, frequent urination, or inability to hold urine
+- Loin or flank pain (kidney area, one or both sides)
+- Fever may be low-grade or high depending on severity
+- Urine may appear cloudy, dark, or smell strongly
+- Pyelonephritis: high fever, vomiting, severe loin pain
 
-Confirm towards malaria if:
-- Fever + chills + sweating episodes + headache
-- Fever + vomiting + no other clear cause
-- Fever in second or third trimester with no mosquito net use
-- Fever present and no other condition more clearly identified
+**Differentiating questions:**
+- Does it burn or hurt when she passes urine?
+- Is she passing urine more often than usual?
+- Does she have pain in her back or side, below her ribs?
+- What does her urine look like — cloudy, dark, or smelly?
+- Has she been treated for urine infection before during this pregnancy?
 
-Uncertainty note:
-- If fever present and no other cause clearly identified — default to possible malaria
-- Malaria and anaemia very commonly coexist — presence of one does not exclude other
-- Never rule out malaria in a Nigerian pregnant woman with fever
+**Confirm towards if:**
+- Urinary symptoms present alongside fever
+- Loin pain or costovertebral angle tenderness
+- Cloudy or offensive urine
+- Previous UTI in this pregnancy (increases risk of recurrence)
 
----
-
-### DISEASE 2: URINARY TRACT INFECTION / KIDNEY INFECTION
-Nigerian priority: HIGH
-
-Key differentiating features:
-- Burning or painful urination
-- Loin or back pain below ribs
-- Cloudy or smelly urine
-- Frequent urination
-
-Differentiating questions:
-- "Do you feel any pain or burning when you urinate?"
-- "Do you have any pain in your back or side, just below your ribs?"
-- "Is your urine looking cloudy or smelling different than usual?"
-
-Confirm towards UTI if:
-- Fever + burning urination + frequency + cloudy urine
-Confirm towards kidney infection if:
-- Above + loin pain + vomiting + shaking chills
-
-Uncertainty note:
-- UTI in pregnancy can be silent — no urinary symptoms does not exclude it
-- If fever unexplained after exploring malaria — consider UTI even without urinary symptoms
+**Uncertainty note:**
+If urinary symptoms are present but mild and fever is low-grade, still escalate — silent pyelonephritis is dangerous in pregnancy. Do not reassure based on mild symptom description alone.
 
 ---
 
 ### DISEASE 3: TYPHOID FEVER
-Nigerian priority: HIGH
+**Nigerian priority level: HIGH**
 
-Key differentiating features:
-- Fever lasting more than 3 days
-- Fever worsening each day rather than episodic
-- Abdominal discomfort
-- History of eating outside or unsafe water
+Typhoid is endemic across Nigeria and frequently affects pregnant women in areas with poor water quality and sanitation, including urban poor areas of Kano. It carries risk of miscarriage, preterm labour, and maternal sepsis.
 
-Differentiating questions:
-- "How many days have you had this fever — and is it getting worse each day?"
-- "Do you have any pain or discomfort in your tummy?"
-- "Have you been eating food from outside or drinking water you are not sure about?"
+**Key differentiating features:**
+- Sustained, stepwise fever (rises daily over several days)
+- Prominent headache, weakness, and generalised malaise
+- Abdominal pain and constipation more common than diarrhoea in early stages
+- Rose spots on trunk (rarely observed in dark skin but may be reported)
+- Relative bradycardia (heart rate lower than expected for fever level)
+- History of consuming untreated water, street food, or food from uncertain sources
 
-Confirm towards typhoid if:
-- Prolonged fever more than 3 days + worsening daily + abdominal discomfort
-- History of eating outside or contaminated water
-- No classic chills and sweating pattern
+**Differentiating questions:**
+- How many days has the fever been present — has it been getting worse each day?
+- Does she have a headache that has persisted throughout?
+- Has she had stomach pain or constipation?
+- Where does she get her drinking water?
+- Does she eat food from outside the home or roadside stalls?
 
-Uncertainty note:
-- Typhoid and malaria can coexist in Nigeria
-- If fever not responding to malaria treatment — consider typhoid strongly
+**Confirm towards if:**
+- Fever sustained and worsening over 5 or more days
+- Headache and malaise out of proportion to other findings
+- No cyclical pattern (distinguishes from malaria)
+- Poor water or food source history
+- Abdominal pain without bleeding
 
----
-
-### DISEASE 4: CHEST INFECTION / PNEUMONIA
-Nigerian priority: MEDIUM-HIGH
-
-Key differentiating features:
-- Cough present
-- Chest pain
-- Fast or difficult breathing
-
-Differentiating questions:
-- "Do you have a cough or any pain in your chest?"
-- "Is your breathing faster or harder than usual?"
-
-Confirm towards chest infection if:
-- Fever + cough + chest pain + fast or difficult breathing
-
-Uncertainty note:
-- Any breathing difficulty with fever — treat as urgent regardless of confidence level
-- Do not wait for full confirmation before escalating if breathing is affected
+**Uncertainty note:**
+Typhoid and malaria can coexist. If fever is prolonged and malaria has been treated without resolution, escalate for typhoid evaluation. Do not dismiss sustained fever as resolving malaria.
 
 ---
 
-### DISEASE 5: ANAEMIA WITH INFECTION
-Nigerian priority: MEDIUM-HIGH
+### DISEASE 4: PNEUMONIA
+**Nigerian priority level: HIGH**
 
-Key differentiating features:
-- Pallor of inner eyelids or palms
-- Extreme fatigue and dizziness
-- Breathlessness on mild activity
-- History of low blood or poor diet
+Pneumonia is more severe in pregnancy due to diaphragmatic elevation and immune changes. Community-acquired bacterial pneumonia and COVID-related pneumonia both occur. Women with anaemia or HIV are at higher risk.
 
-Differentiating questions:
-- "Do the inside of your eyelids or your palms look very pale?"
-- "Are you feeling extremely weak or dizzy along with the fever?"
+**Key differentiating features:**
+- Productive cough with fever
+- Difficulty breathing, fast breathing, or chest pain on breathing
+- Pleuritic chest pain (sharp pain on deep breath)
+- Reduced breath sounds or dullness on one side (if accessible to examine)
+- Weakness and malaise prominent
 
-Confirm towards anaemia with infection if:
-- Fever + pallor + extreme fatigue + dizziness + poor diet history
+**Differentiating questions:**
+- Does she have a cough — is she bringing up sputum?
+- Is she finding it hard to breathe or breathing faster than normal?
+- Does she have any chest pain, especially when she breathes in deeply?
+- Has anyone else in her household had a similar illness?
 
-Uncertainty note:
-- Anaemia and malaria very commonly occur together
-- Do not stop reasoning at anaemia alone — explore both
+**Confirm towards if:**
+- Cough with fever and breathing difficulty together
+- Pleuritic chest pain
+- Rapid respiratory rate reported
+- Recent contact with someone with respiratory illness
+
+**Uncertainty note:**
+Breathlessness in pregnancy can be normal in the third trimester, but fever with any new breathlessness must be escalated. Do not attribute new breathing difficulty to pregnancy alone.
 
 ---
 
-### GENERAL UNCERTAINTY RULE
-- If fever present and cause unclear after maximum questions — default to possible malaria
-- Advise urgent clinic visit
-- Never advise home management for unexplained fever in pregnancy
-- When in doubt — escalate. Uncertainty is never a reason to reassure.
-- Coexisting conditions are common in Nigeria — one diagnosis does not exclude another
+### DISEASE 5: CHORIOAMNIONITIS (INTRAUTERINE INFECTION)
+**Nigerian priority level: HIGH**
 
+Chorioamnionitis is infection of the amniotic membranes and fluid. It is a direct threat to both mother and fetus and requires emergency management. Risk is highest after rupture of membranes, prolonged labour, or invasive procedures.
+
+**Key differentiating features:**
+- Fever in the second or third trimester
+- Foul-smelling or discoloured vaginal discharge
+- Uterine tenderness on palpation
+- History of ruptured membranes (leaking fluid from vagina)
+- Fetal tachycardia (if monitoring available)
+- Maternal tachycardia
+
+**Differentiating questions:**
+- Has she noticed any fluid leaking from her vagina — like water breaking?
+- Does she have any vaginal discharge that smells bad or looks unusual?
+- Does her abdomen feel tender or painful when touched?
+- Has she had any procedure done recently — internal examination, cervical stitch?
+
+**Confirm towards if:**
+- Ruptured membranes confirmed or suspected plus fever
+- Foul vaginal discharge alongside fever
+- Uterine tenderness with fever
+- Fever in late second or third trimester without other clear source
+
+**Uncertainty note:**
+Any fever after confirmed or suspected membrane rupture is chorioamnionitis until proven otherwise. Escalate immediately — there is no safe observation period for this combination.
+
+---
+
+### DISEASE 6: HIV-RELATED OPPORTUNISTIC INFECTION
+**Nigerian priority level: MEDIUM-HIGH**
+
+Nigeria has one of the highest HIV burdens globally. Pregnant women with unknown or advanced HIV status may present with fever from opportunistic infections including TB, PCP, cryptococcal meningitis, or severe bacterial infections.
+
+**Key differentiating features:**
+- Prolonged or recurrent fever not responding to standard treatment
+- Weight loss, chronic cough, or oral thrush reported
+- Known HIV positive status or high-risk history
+- Night sweats prominent
+- Lymphadenopathy
+
+**Differentiating questions:**
+- Has she been tested for HIV during this pregnancy?
+- Has she lost weight recently without trying?
+- Does she have a cough that has lasted more than 2 weeks?
+- Has she had white patches in her mouth?
+- Does she sweat heavily at night?
+
+**Confirm towards if:**
+- Known HIV positive status with fever
+- Prolonged fever unresponsive to malaria or antibiotic treatment
+- Weight loss and chronic cough together
+- Oral thrush or other opportunistic signs
+
+**Uncertainty note:**
+If HIV status is unknown and fever is prolonged or recurrent, escalate for HIV testing alongside other workup. Do not defer HIV testing due to pregnancy.
+
+---
+
+### DISEASE 7: VIRAL ILLNESS (INCLUDING COVID-19, INFLUENZA)
+**Nigerian priority level: MEDIUM**
+
+Viral illnesses including influenza and COVID-19 can cause significant fever in pregnancy and increase risk of preterm labour and severe disease. They are differentiated from bacterial causes primarily by the symptom pattern and exposure history.
+
+**Key differentiating features:**
+- Fever with prominent upper respiratory symptoms — runny nose, sore throat, body aches
+- No localising features pointing to UTI, lung, or uterine source
+- Household contacts with similar illness
+- COVID-19: loss of taste or smell, fatigue, dry cough
+
+**Differentiating questions:**
+- Does she have a runny nose, sore throat, or body aches alongside the fever?
+- Has anyone in her household been ill in the same way recently?
+- Has she lost her sense of taste or smell?
+- Has she been in contact with anyone known to have COVID-19?
+
+**Confirm towards if:**
+- Upper respiratory symptoms dominate
+- Household cluster of similar illness
+- No urinary, respiratory, or uterine localising signs
+- Fever resolving within 3 to 5 days with supportive care
+
+**Uncertainty note:**
+Viral illness in pregnancy can deteriorate rapidly. Fever lasting more than 48 hours or any worsening must be escalated regardless of presumed viral cause.
+
+---
+
+### GENERAL UNCERTAINTY RULE — FEVER IN PREGNANCY
+
+If the cause of fever in a pregnant woman cannot be clearly identified, or if fever has persisted for more than 48 hours, or if any red flag is present or cannot be excluded, UMMA must escalate to facility care. Fever in pregnancy is never safe to observe at home beyond 48 hours. When in doubt, escalate.

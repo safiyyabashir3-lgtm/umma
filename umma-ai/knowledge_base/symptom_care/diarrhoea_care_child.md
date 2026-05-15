@@ -1,193 +1,144 @@
-# SYMPTOM CARE FILE: DIARRHOEA IN A CHILD UNDER FIVE
-## Nigerian Context — Awaiting Clinician Verification
+# diarrhoea_care_child.md
+# UMMA AI — Symptom Care File
+# Symptom: DIARRHOEA IN A CHILD (under 5 years)
+# Context: Nigeria / Northern Nigeria (Kano)
 
 ---
 
 ## ACTION TIERS
 
 ### EMERGENCY — Go to hospital immediately
-Triggered by any of:
-- Child unconscious or very difficult to wake
-- Child unable to drink at all
-- Child with sunken eyes and no tears, dry mouth, not passing urine
-- Blood in stool with high fever and child very unwell
-- Diarrhoea in a child under 2 months
-- Child with convulsion
-- Child limp and unresponsive
-- Diarrhoea with severe vomiting — unable to keep any fluid down for more than 4 hours
-- Signs of severe dehydration — no urine for 8 hours, sunken fontanelle in infant, skin pinch returns very slowly
+**Triggered by:**
+- Child is unconscious, very limp, or cannot be woken
+- Child has sunken eyes, very dry mouth, no tears when crying, and skin that stays up when gently pinched (sign of severe dehydration)
+- Child has not passed urine in 8 hours or more
+- Child is having a seizure
+- There is blood in every stool — large amounts of blood
+- Child is breathing very fast alongside diarrhoea and vomiting (sign of severe dehydration or sepsis)
+- Child under 2 months with any diarrhoea
+- Child is refusing all fluids and cannot keep anything down
+- Diarrhoea is very frequent — more than 10 watery stools in one day in a small child
 
-Plain language: "Your child is very unwell and needs hospital care immediately. Please go now — do not wait. Dehydration in a young child can become dangerous very quickly."
+**Plain language:**
+"Your child is showing signs of serious dehydration or a severe infection. This is an emergency. Go to hospital now. On the way, if your child is conscious and can swallow, offer small sips of ORS — a teaspoon every few minutes. Do not stop to prepare food or wait for morning."
 
 ---
 
 ### URGENT CLINIC — Go today, same day
-Triggered by any of:
-- Diarrhoea in a child under 6 months — always urgent
-- More than 6 episodes of watery diarrhoea in 24 hours
-- Blood in stool at any age
+**Triggered by:**
+- Child has had diarrhoea for more than 3 days
+- Child has some signs of dehydration — restless, thirsty, dry mouth, fewer tears — but is still passing urine
+- Blood or mucus in the stool
 - Diarrhoea with high fever
-- Child drinking poorly or less than usual
-- Diarrhoea lasting more than 3 days
-- Child not passing urine for 6 hours
-- Child who appears more unwell than expected
-- Any uncertainty about severity
+- Child is under 6 months
+- Child is not improving after starting ORS
+- Mother is worried the child is getting worse
 
-Plain language: "Your child needs to be seen by a nurse or doctor today. Please go to your nearest clinic — do not wait until tomorrow."
+**Plain language:**
+"Your child needs to be seen at a clinic today. Please go to your nearest Primary Health Centre or health facility before evening. Bring ORS and offer it on the way. A health worker needs to check your child's hydration and find out what is causing the diarrhoea."
 
 ---
 
 ### HOME CARE — Only if ALL of these are true
-- Child over 6 months
-- Mild diarrhoea — fewer than 6 watery episodes per day
+**Conditions for home care:**
+- Child is over 6 months old
+- Diarrhoea started within the last 24–48 hours
+- Child is alert, not drowsy
+- Child is drinking and keeping fluids down
+- No blood or mucus in stool
+- Child is still passing urine (wet nappies or going to toilet)
+- No fever, or mild fever only
+- No vomiting, or very mild vomiting
+
+**Home care instructions:**
+1. **Start ORS immediately.** ORS sachets are available at PHCs and most patent medicine vendors. Mix exactly as written on the packet — always use clean water. Offer small, frequent amounts — a spoon every few minutes for a young baby; a cup every 1–2 hours for older children. Do NOT add extra sugar or salt.
+2. **Continue breastfeeding.** Do not stop breastfeeding a breastfed baby during diarrhoea — it is the best fluid and protects against infection. Breastfeed more often than usual.
+3. **Continue feeding.** Older children should continue eating — soft foods like rice, yam, or porridge. Diarrhoea is made worse by stopping food. Avoid high-sugar drinks like fizzy drinks or fruit juice.
+4. **Zinc.** If zinc tablets or syrup are available at the PHC or pharmacy, zinc for 10–14 days reduces the length and severity of diarrhoea in children. Ask a health worker about this.
+5. **Handwashing.** Wash your hands with soap and water before preparing food, before feeding the child, and after cleaning the child's stool. This prevents the illness spreading.
+6. **Clean water only.** Use only clean, safe water for ORS and drinks. Boil water if unsure of the source.
+
+**Plain language:**
+"You can manage your child's diarrhoea at home right now. The most important thing is to keep giving ORS and fluids so the child does not become dehydrated. Keep breastfeeding if you are breastfeeding. Watch for any signs of worsening and go to the clinic if they appear."
+
+---
+
+### MONITOR — With clear safety net
+**Conditions:**
+- Mild diarrhoea, improving
+- Child is alert and taking fluids
+- No dehydration signs
 - No blood in stool
-- No high fever
-- Child drinking well and alert
-- Child passing urine normally
-- Diarrhoea started less than 24 hours ago
-- No signs of dehydration
+- Diarrhoea less than 48 hours old and reducing in frequency
 
-Home care instructions:
-- Start oral rehydration solution (ORS) immediately — give small sips frequently
-- ORS sachets are available at all primary health centres and pharmacies — use these, not homemade salt and sugar without guidance
-- Continue breastfeeding if breastfed — do not stop
-- Continue feeding if child is eating solids — do not starve the child
-- Give ORS after every loose stool — small children: half a cup, older children: one cup
-- Zinc tablets if available and child over 6 months — complete the 10 day course
-- Watch for warning signs carefully
-- Return to clinic immediately if condition worsens
+**What to watch:**
+- Stool frequency increasing
+- Child becoming more drowsy or irritable
+- Refusing fluids
+- Eyes becoming sunken
+- Urine output reducing
+- Blood or mucus appearing in stool
+- Fever rising
 
-Plain language: "Give your child ORS to drink in small sips often. Continue feeding and breastfeeding. Watch carefully and go to the clinic today if the diarrhoea gets worse, your child stops drinking, or you are worried."
+**Plain language:**
+"Continue giving ORS and watch your child closely. Check on them every few hours. As long as they are drinking and passing urine, they are staying hydrated. If any of the safety net signs appear, go to hospital immediately."
 
 ---
 
-### MONITOR — With very clear safety net
-- Mild diarrhoea, child alert and drinking well, no concerning features
-- Reassess every few hours
-- Any worsening — go to clinic immediately
+### UNCERTAIN — When UMMA cannot determine severity
+**Plain language:**
+"I cannot be certain from what you have described how serious your child's diarrhoea is. To be safe, please start giving ORS now and take your child to the nearest health facility today so they can be assessed properly. Dehydration in young children can become dangerous very quickly."
 
 ---
 
-## SAFETY NET — Attach to EVERY response about diarrhoea in a child
-"Please watch your child carefully. Go to hospital immediately if your child becomes very weak or difficult to wake, stops drinking completely, has sunken eyes or very dry mouth, passes no urine for 8 hours, has blood in the stool, or develops a fit. Diarrhoea can cause dangerous dehydration very quickly in young children — do not wait if you are worried."
+## SAFETY NET
+**Go to hospital immediately if any of these happen:**
+
+- Your child's eyes become sunken
+- Your child's mouth and tongue become very dry
+- Your child stops producing tears when crying
+- The skin on your child's belly stays pinched up when you gently pinch and release it
+- Your child has not passed urine in 8 hours
+- Your child becomes very sleepy, limp, or hard to wake
+- Your child cannot keep any fluids down — vomiting everything
+- There is blood in the stool
+- Diarrhoea becomes more frequent instead of better
+- Your child has a seizure
 
 ---
 
-## GENERAL SAFE ADVICE FOR DIARRHOEA IN A CHILD
-- ORS is the most important treatment — it saves lives and is safe for all ages
-- Do not give soft drinks, juice, or sugary water instead of ORS — these make diarrhoea worse
-- Do not stop breastfeeding during diarrhoea — breast milk is protective and hydrating
-- Do not stop feeding solids — starving a child with diarrhoea slows recovery
-- Zinc reduces severity and duration of diarrhoea — ask for it at the clinic
-- Antibiotics are not needed for most diarrhoea — do not buy antibiotics without prescription
-- Wash hands with soap before preparing food and after using toilet
-- Use clean water for drinking and cooking
+## GENERAL SAFE ADVICE
 
----
-
-## NIGERIAN SPECIFIC CARE ADVICE
-- ORS sachets are available free or very cheaply at primary health centres across Nigeria — always go there first
-- Rotavirus, E. coli, and cholera are important causes of diarrhoea in children in Nigeria — take all severe diarrhoea seriously
-- Traditional belief to withhold food and fluids during diarrhoea is dangerous — correct this gently but firmly
-- Do not give agbo, local herbs, or traditional treatments for diarrhoea in young children — these can worsen dehydration
-- In Kano and northern Nigeria — open defecation and contaminated water sources contribute to spread — encourage hand washing and safe water use
-- Malnutrition worsens diarrhoea and diarrhoea worsens malnutrition — any malnourished child with diarrhoea needs clinic care urgently
-- If ORS not available at home — go to primary health centre immediately, do not attempt to make homemade solution without proper guidance
-
-EOFcat > /workspaces/umma/umma-ai/knowledge_base/symptom_care/breathing_care_child.md << 'EOF'
-# SYMPTOM CARE FILE: DIFFICULTY BREATHING IN A CHILD UNDER FIVE
-## Nigerian Context — Awaiting Clinician Verification
-
----
-
-## ACTION TIERS
-
-### EMERGENCY — Go to hospital immediately
-Triggered by any of:
-- Child unable to breathe — gasping or stopping breathing
-- Lips, tongue, or fingernails turning blue or grey
-- Child unconscious or very difficult to wake
-- Chest sucking deeply inward with every breath — severe chest indrawing
-- Child unable to drink or cry due to breathing difficulty
-- Noisy crowing sound on breathing in — stridor
-- High fever with very fast breathing in child under 2 months
-- Any breathing difficulty in a newborn under 1 month
-- Breathing difficulty with convulsion
-
-Plain language: "Your child cannot breathe properly. This is a medical emergency. Go to hospital immediately — do not wait even one minute. Get help to take you now."
-
----
-
-### URGENT CLINIC — Go today, same day
-Triggered by any of:
-- Fast breathing for age — more than 50 breaths per minute in child under 1 year, more than 40 per minute in child 1 to 5 years
-- Any chest indrawing — ribs visible with each breath
-- Child grunting with each breath
-- Breathing difficulty with fever
-- Persistent cough with fast breathing
-- Child breathing fast even when calm and not crying
-- Child appears to be working hard to breathe
-- Any breathing problem in child under 6 months
-- Any uncertainty about severity of breathing
-
-Plain language: "Your child is breathing in a way that needs a doctor to check today. Please go to your nearest clinic now — do not wait."
-
----
-
-### HOME CARE — Only if ALL of these are true
-- Mild cough only with no fast or difficult breathing
-- Child calm and breathing normally when resting
-- No chest indrawing
-- No fever or only very mild fever
-- Child drinking and eating normally
-- Child alert and active
-- Over 6 months of age
-
-Home care instructions:
-- Keep child in cool, well-ventilated room
-- Sit child upright or slightly elevated — do not lay flat if breathing is uncomfortable
-- Ensure child drinks adequate fluids
-- Honey for cough in children over 1 year only — do not give honey to children under 1 year
-- Do not give adult cough medicines to young children
-- Do not give aspirin to children
-- Do not burn anything in the room — smoke worsens breathing
-- Return immediately if breathing worsens or becomes faster
-
-Plain language: "Keep your child comfortable, upright, and in fresh air. Make sure they drink enough. Watch carefully and go to the clinic immediately if the breathing becomes faster, harder, or your child looks unwell."
-
----
-
-### MONITOR — With very clear safety net
-- Mild cough, normal breathing rate, child alert
-- Count breathing rate when child is calm — if more than 50 per minute under 1 year or 40 per minute in older child, go to clinic immediately
-- Reassess frequently
-- Any worsening — go immediately
-
----
-
-## SAFETY NET — Attach to EVERY response about breathing difficulty in a child
-"Please watch your child's breathing carefully. Go to hospital immediately if the breathing becomes very fast, if the skin between the ribs is pulling in with each breath, if the lips or face look bluish or grey, if your child cannot drink or cry, if they become very weak or difficult to wake, or if you are worried at any point. Breathing problems in young children can worsen very quickly."
-
----
-
-## GENERAL SAFE ADVICE FOR BREATHING DIFFICULTY IN A CHILD
-- Never use adult cough or cold medicines in young children
-- Do not give aspirin to children — dangerous
-- Honey may soothe cough in children over 1 year — never give to children under 1 year
-- Do not smoke near the child or in the same room or house
-- Keep the room well ventilated — avoid smoke from cooking fires
-- Sit child upright if breathing is uncomfortable
-- Pneumonia is a common and serious cause of breathing difficulty in Nigeria — it needs antibiotics from a doctor, not home treatment
-- Breastfeeding protects against chest infections — continue if still breastfeeding
+- **ORS is the treatment** — ORS (Oral Rehydration Salts) replaces the water and salts lost in diarrhoea. It is safe, cheap, and effective. It does not stop diarrhoea but prevents dehydration, which is what kills children. It is available at PHCs, patent medicine vendors, and markets.
+- **Do not give plain water alone** — plain water alone does not replace the salts lost. ORS is better. If ORS is not available immediately, a home sugar-salt solution can be used temporarily while getting ORS: 1 litre of clean boiled water, 6 level teaspoons of sugar, and half a level teaspoon of salt. This is only a temporary measure.
+- **Do not give anti-diarrhoea medicines** — medicines that stop diarrhoea (like loperamide) are NOT recommended for children. They trap infection in the gut and can be dangerous.
+- **Do not give antibiotics without a prescription** — diarrhoea is usually caused by a virus and does not respond to antibiotics. Antibiotics are only given when there is blood in the stool or a specific bacterial infection is confirmed.
+- **Zinc** — zinc supplements given for 10 days after a diarrhoea episode reduce the risk of further episodes. Ask at your PHC.
 
 ---
 
 ## NIGERIAN SPECIFIC CARE ADVICE
-- Pneumonia is among the three leading killers of children under five in Nigeria — do not delay clinic care for any breathing difficulty
-- Indoor cooking smoke from wood or kerosene stoves significantly worsens chest infections in children in northern Nigeria — improve ventilation where possible
-- Counting the breathing rate is a simple and reliable way to detect pneumonia — teach mothers to count breaths per minute
-- Primary health centres have amoxicillin for pneumonia treatment — this is available and effective
-- Do not give local herbal steam inhalations to young children — risk of burns and harm
-- Malaria and pneumonia commonly occur together in Nigerian children — fever with fast breathing needs assessment for both
-- Many families delay seeking care for breathing problems, believing it will pass — early presentation saves lives
 
+**Water and sanitation:**
+Contaminated water is the most common cause of diarrhoea in young children in northern Nigeria. Where possible, use clean water from a known safe source for drinking and food preparation. Boil water if the source is uncertain. Wash all fruits and vegetables. Store drinking water in a clean covered container.
+
+**Heat and diarrhoea:**
+In the heat of northern Nigeria, children lose fluids even faster through sweat as well as diarrhoea. This means dehydration can develop more quickly than in cooler climates. Offer ORS and fluids more frequently in hot weather.
+
+**Patent medicine vendors (PMVs):**
+ORS sachets and zinc tablets are widely available from PMVs. However, PMVs may also offer "injections for diarrhoea" or anti-diarrhoeal medicines — these are not recommended for children and should be refused. If in doubt, go to the PHC.
+
+**Herbal remedies:**
+Many families use herbal teas, roots, or preparations for childhood diarrhoea. Some of these may cause further dehydration, vomiting, or contain harmful ingredients. UMMA respectfully advises against giving herbal remedies to a child with diarrhoea. The safest treatment is ORS, continued feeding, and a clinic visit if the child does not improve. Please tell the health worker if you have given any herbal treatment.
+
+**Breastfeeding:**
+It is a common belief that breastmilk "causes" or worsens diarrhoea. This is not true. Breastmilk is safe and protective. Do not stop breastfeeding during diarrhoea — increase feeds instead.
+
+**Food during diarrhoea:**
+Some families stop feeding a child with diarrhoea, believing food makes it worse. This is not recommended. Continue soft, easily digestible foods. Starvation weakens the child and slows recovery. Avoid high-fat or very spicy foods, but do not withhold food entirely.
+
+**Handwashing:**
+Proper handwashing with soap before preparing food and after cleaning a child's stool is one of the most effective ways to stop diarrhoea spreading within a household. If soap is unavailable, ash or sand can be used as a substitute while getting soap.
+
+**Nearest PHC:**
+ORS is freely available at most PHCs in Kano State. Zinc is part of the national diarrhoea management protocol. Severely dehydrated children will be referred for IV fluids at a secondary facility.

@@ -27,7 +27,8 @@ CATEGORY_CONFIG = {
     "symptom_care": {"safety_level": "medium"},
     "medication": {"safety_level": "high"},
     "pregnancy_education": {"safety_level": "medium"},
-    "child_health_education": {"safety_level": "medium"}
+    "child_health_education": {"safety_level": "medium"},
+    "first_aid": {"safety_level": "high"}
 }
 
 def read_file(file_path: str) -> str:
@@ -131,7 +132,8 @@ def main():
         "symptom_care": f"{base}/symptom_care",
         "medication": f"{base}/medication",
         "pregnancy_education": f"{base}/pregnancy_education",
-        "child_health_education": f"{base}/child_health_education"
+        "child_health_education": f"{base}/child_health_education",
+        "first_aid": f"{base}/first_aid"
     }
 
     for category_key, folder_path in folders.items():

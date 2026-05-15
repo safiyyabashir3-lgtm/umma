@@ -7,264 +7,294 @@
 ## SECTION 1: SYMPTOM VERIFICATION
 
 ### Confirming the symptom
-Before proceeding, confirm the child actually has fever and not another symptom.
+Fever in a child is not always clearly stated. Caregivers in northern Nigeria commonly describe
+fever as "jikin yana zafi" (body is hot), "zazzabi" (fever), or simply say the child is
+"ba lafiya" (not well) or "yana kuka" (crying and unsettled). Do not require the word "fever"
+before proceeding — a body that is hot to touch is fever until proven otherwise.
 
-Ask ONE of these only if fever is not clearly stated:
-- "Is the child's body feeling hot to your touch?"
-- "Has the child been shivering or shaking, then feeling very hot?"
+Establish the child's age immediately. Age determines urgency before anything else:
+- Any fever in a child under 3 months — this is an emergency regardless of all other findings.
+  Do not proceed to disease reasoning. Escalate immediately.
+- Any fever in a child 3 to 6 months — treat as urgent. Threshold for escalation is lower.
+- Child over 6 months — proceed through triage systematically.
 
-If fever is clearly stated by caregiver — skip verification and proceed to triage immediately.
-
-### Critical age check — establish immediately if not stated
-If the child's age is not known, ask: "How old is the child?"
-- If child is under 3 months — ANY fever is an emergency. Escalate immediately.
-  Do not proceed to triage questions. Do not proceed to disease reasoning.
+Confirm the symptom if not clearly stated by asking whether the child's body feels hot to touch,
+or whether the child has been shivering or sweating.
 
 ### Symptoms that may be confused with fever
-- Child hot from sun or prolonged heat exposure — resolves quickly with cooling,
-  no other symptoms, child alert and well
-- Teething — low-grade warmth only, no systemic illness signs, child feeding normally
+- Child feeling warm after being wrapped in heavy clothing or lying in a hot room —
+  resolves when clothing is removed or child is cooled, no systemic illness signs
+- Teething — may cause mild warmth and irritability but does not cause high fever;
+  high fever attributed to teething must still be investigated
+- Child crying or distressed without fever — check for other causes of distress
+
+### Local language and cultural context
+Caregivers in Kano commonly use the following terms:
+- Zazzabi — fever (direct term, widely understood)
+- Jikin yana zafi — body is hot
+- Yana rawar jiki — shivering / rigors (strongly suggests malaria)
+- Yana zufa — sweating (sweating after fever is classic malaria pattern in children)
+- Yana da sanyi sannan ya yi zafi — feeling cold then hot (classic malaria pattern)
+- Ciwo na jini — blood sickness (common folk term for malaria in Kano — take seriously)
+
+Caregivers may have already given the child agbo (herbal mixture), paracetamol syrup bought
+from a patent medicine vendor, or traditional remedies before presenting. Always ask what has
+already been given — this affects clinical picture and may mask fever temporarily.
+
+Some caregivers believe high fever in children is caused by spiritual forces or teething.
+Do not dismiss this framing — acknowledge it and continue clinical assessment respectfully.
 
 ---
 
-## SECTION 2: TRIAGE
+## SECTION 2: TRIAGE — RED FLAGS
 
-### QUESTIONING RULES FOR TRIAGE
-- Ask ONE question at a time only
-- Maximum 3 triage questions before moving to disease reasoning
-- If caregiver's opening message already contains red flag information —
-  escalate immediately without asking further
-- Acknowledge what caregiver said warmly before each question
-- Never repeat information the caregiver has already given
-- If child is under 3 months — do not ask triage questions. Escalate immediately.
+Escalate immediately if any of the following are present. Do not proceed to disease reasoning.
+Ordered from most dangerous to least dangerous.
 
-### RED FLAGS — Escalate immediately if any present
-- Child under 3 months with any fever — always emergency
-- Fever with seizure or convulsion — now or within the last hour
+- Any fever in a child under 3 months — emergency regardless of other findings
+- Convulsion occurring now or occurred in the last hour
 - Child unconscious, unresponsive, or cannot be woken
+- Child limp — unable to sit, stand, or hold head up
 - Child unable to drink or breastfeed at all
-- Fever with very fast or difficult breathing — nostrils flaring, chest pulling in
-  between the ribs or below the breastbone
-- Fever with stiff neck — child cries or resists neck movement
-- Bulging soft spot (fontanelle) on head in an infant
-- Child looks severely unwell — limp, pale, grey, or not responding to surroundings
-- Fever with purple or dark red spots on skin that do not fade when pressed
-- Fever lasting more than 7 days
-- Caregiver reports the child looks the sickest they have ever seen
-
-### Triage question priority order
-Ask only what is not already known. Stop as soon as a red flag is confirmed.
-
-Priority 1: "Is the child breathing very fast, or can you see the chest or the area
-             below the neck pulling in with each breath?"
-Priority 2: "Has the child had any fit or shaking of the body with this fever —
-             either now or earlier today?"
-Priority 3: "Is the child able to drink or breastfeed — or refusing completely?"
-
-### IF ANY RED FLAG CONFIRMED — Escalate immediately. Do not proceed.
-### IF NO RED FLAGS AFTER MAXIMUM 3 QUESTIONS — Proceed to Section 3.
+- Difficulty breathing at rest — fast, laboured, or noisy breathing not explained by crying
+- Chest indrawing — skin pulling in between ribs or below breastbone with each breath
+- Lips, tongue, or fingertips appearing blue or grey
+- Severe pallor — inner eyelids or palms almost white
+- Child has had more than one convulsion in the past 24 hours
+- Fever with stiff neck — neck cannot be bent forward, child resists
+- Fever with bulging fontanelle in an infant — the soft spot on the head is pushed outward
+- Fever with petechiae or purpura — small red or purple spots on skin that do not fade when pressed
+- Fever with severe vomiting — unable to keep any fluid down
+- Caregiver says child is the sickest they have ever seen them
+- Caregiver is very frightened — clinical instinct in a mother who knows her child is not to be dismissed
 
 ---
 
 ## SECTION 3: CLINICAL REASONING GUIDE
 
-### QUESTIONING RULES FOR DISEASE REASONING
-- Ask ONE question at a time only
-- Maximum 4 questions total across all disease reasoning
-- Use answers already given by caregiver — do not re-ask
-- If pattern is already clear from caregiver's story — reason confidently
-  without asking all 4 questions
-- If pattern remains unclear after 4 questions — apply uncertainty rule
-- Always acknowledge caregiver's answer warmly before next question
+### Nigerian and Kano context
+Malaria is the leading cause of death in Nigerian children under 5 and must always be the first
+differential for any fever. Nigeria carries the highest malaria burden in the world. In Kano and
+northwest Nigeria, Plasmodium falciparum is responsible for virtually all malaria. Children under 5
+have not yet developed immunity and are at highest risk of severe and fatal disease.
 
-### NIGERIAN / KANO CONTEXT NOTE
-Malaria is the leading cause of fever in Nigerian children under 5 and must always
-be explored first. However, Salmonella bacteremia (typhoid and related bloodstream
-infections) is the leading identified cause of serious bacterial illness in febrile
-children in Kano and northwest Nigeria specifically — it must be considered early,
-especially when fever has lasted more than 3 days. Pneumonia frequently coexists
-with malaria. Malnutrition affects over 60% of under-5 children in Kano and worsens
-every febrile illness. Never dismiss fever in a child under 5 as trivial.
+Malaria commonly coexists with pneumonia, anaemia, and malnutrition in this population. One
+diagnosis does not exclude another. Malnutrition affects over 60% of children under 5 in Kano
+and significantly worsens the severity of every febrile illness — a malnourished child deteriorates
+faster and must be escalated sooner. Typhoid is endemic. Meningitis, though less common, is fatal
+if missed. Never dismiss fever in a child in this context.
 
 ---
 
 ### DISEASE 1: MALARIA
-Nigerian priority: HIGHEST — always explore first in any febrile child under 5
+Nigerian priority: HIGHEST — always the first differential for any fever in a child
 
 Key differentiating features:
-- Episodic chills and rigors followed by high fever and sweating
-- Vomiting with fever
-- Child looks unwell and irritable between fever spikes
-- No mosquito net use or inconsistent use
-- Rainy season or shortly after — higher transmission risk
-- Headache in older children
+- Fever — may be continuous or episodic; classic pattern is chills then heat then sweating
+  but this pattern is often absent or incomplete in young children
+- Rigors or shivering episodes — when present, strongly suggest malaria
+- Sweating after fever — classic but not always present in children under 2
+- Vomiting — very common in significant malaria in children, often prominent
+- Headache — older children may report this; younger children show it as irritability
+- Poor appetite and reduced feeding
+- Pallor developing — inner eyelids becoming pale signals malaria anaemia
+- Fast breathing driven by anaemia — not chest infection; no chest indrawing
+- Child looks unwell but may still be responsive in mild to moderate disease
+- Sleeping under no net or inconsistent net use
+- Rainy season or post-rainy season — higher transmission in Kano
 
-Differentiating questions (ask only what caregiver has not already told you):
-- "Is the child shivering and shaking with cold at times, then getting very hot
-  and sweaty?"
-- "Has the child been vomiting with the fever?"
-- "Does the child sleep under a mosquito net every night?"
-- "How many days has the child had this fever?"
+Differentiating questions:
+- Has the child been shivering or shaking, then getting very hot, then sweating?
+- How many days has the fever been present?
+- Has the child been vomiting?
+- Are the inside of the child's eyelids or palms looking pale?
+- Has the child been sleeping under a mosquito net?
 
 Confirm towards malaria if:
-- Fever + chills + sweating episodes + vomiting
-- Fever + no consistent mosquito net use + no other clear cause identified
-- Any febrile child under 5 in Kano with no clearly identified alternative cause
+- Fever + chills and sweating pattern + vomiting
+- Fever + pallor + fast breathing with no chest indrawing
+- Fever + vomiting + no other clear cause identified
+- Any fever in a child with no mosquito net use
+- Fever present and no other condition more clearly identified — default to malaria
 
 Uncertainty note:
-- If fever present and no other cause clearly identified — default to possible malaria
-- Malaria and severe anaemia very commonly coexist in Kano children
-- Malaria and pneumonia can coexist — if respiratory symptoms present alongside
-  fever, do not stop at malaria alone
-- In young infants under 6 months, classic chills may be absent — do not rule
-  out malaria based on absence of chills alone
-- Never rule out malaria in a Nigerian child under 5 with fever
+- Malaria can present without classic chills in children under 2 — do not rule out
+  based on absence of chills alone
+- Pallor with fever in a child is serious regardless of cause — always escalate
+- Malaria and pneumonia frequently coexist — fever with fast breathing may be both
+- Malaria and malnutrition coexist frequently — malnourished child with fever needs
+  earlier escalation
+- Never rule out malaria in a febrile Nigerian child under 5
 
 ---
 
-### DISEASE 2: TYPHOID AND SERIOUS BLOODSTREAM INFECTION (SALMONELLA BACTEREMIA)
-Nigerian / Kano priority: HIGH — Salmonella is the leading bacterial cause of
-serious febrile illness in Kano and northwest Nigeria
+### DISEASE 2: PNEUMONIA
+Nigerian priority: HIGHEST alongside malaria for fever with breathing involvement
 
 Key differentiating features:
-- Fever lasting more than 3 days — often worsening progressively each day
-- Child looks lethargic — not just tired, but unusually still and uninterested
-- Abdominal pain or visible abdominal distension
-- Diarrhoea or constipation
-- Vomiting
-- Fast breathing (tachypnea) even without clear chest infection
-- History of eating outside food or drinking unsafe water
-- Fever not responding to home treatment after 3 days
+- Fast breathing persistent at rest — most reliable sign
+- Chest indrawing — skin pulls in between ribs or below breastbone with each breath
+- Cough — may be wet, dry, or minimal; absence of cough does not exclude pneumonia
+- Fever present in most cases but may be absent in malnourished children
+- Grunting with each breath — especially in infants, indicates severe disease
+- Poor feeding due to breathing effort
+- Child looks tired, unwell, working hard to breathe
+
+Fast breathing thresholds by age (WHO IMCI):
+- Child under 2 months — 60 breaths per minute or more
+- Child 2 to 11 months — 50 breaths per minute or more
+- Child 1 to 5 years — 40 breaths per minute or more
 
 Differentiating questions:
-- "How many days has the fever been going on — and is it getting worse each day?"
-- "Is the child looking very weak and lifeless — not moving or responding as usual?"
-- "Does the child have any tummy pain, or has the tummy looked swollen?"
-- "Has the child been eating food from outside or drinking water that may not be clean?"
+- Is the child breathing faster than normal even when calm and not crying?
+- Is there any pulling in of the skin between the ribs with each breath?
+- Does the child have a cough, and how long has it been present?
+- Is the child feeding or drinking much less than usual?
 
-Confirm towards typhoid / serious bloodstream infection if:
-- Fever more than 3 days + worsening daily + lethargy
-- Fever + lethargy + fast breathing + no clear chest focus
-- Fever + abdominal pain or distension + diarrhoea or constipation
-- Fever not responding to any home treatment
+Confirm towards pneumonia if:
+- Fever + fast breathing at rest + poor feeding
+- Fever + chest indrawing regardless of other findings
+- Fast breathing persistent at rest in any child under 5
 
 Uncertainty note:
-- Typhoid and malaria coexist frequently in Nigerian children — one does not
-  exclude the other
-- Lethargy with fever beyond 3 days in Kano should always raise suspicion of
-  serious bloodstream infection — escalate
-- Blood culture is unavailable in most Kano primary facilities — clinical
-  suspicion must guide escalation
-- Prolonged fever with lethargy and fast breathing without clear respiratory
-  source — treat as serious and escalate
+- In malnourished children fever may be absent even in severe pneumonia
+- Malaria and pneumonia coexist frequently — both must be considered together
+- Fast breathing with fever in a child is always urgent regardless of confidence level
 
 ---
 
-### DISEASE 3: PNEUMONIA AND CHEST INFECTION
-Nigerian priority: HIGH — leading cause of death in under-5 children alongside
-malaria in Nigeria
+### DISEASE 3: TYPHOID FEVER
+Nigerian priority: HIGH — endemic across Nigeria including Kano
 
 Key differentiating features:
-- Fast breathing even when fever is not at its peak
-- Chest pulling in — indrawing between the ribs or below the breastbone
-- Nostrils flaring with each breath
-- Cough — may be wet or dry
-- Child feeds or drinks poorly due to breathing difficulty
-- Child looks tired, pale, and unwell with respiratory effort
+- Fever lasting more than 3 days — worsening each day rather than episodic
+- Abdominal pain or discomfort — often diffuse
+- Constipation more common than diarrhoea in early typhoid in children
+- Diarrhoea may develop later — may be green or foul-smelling
+- Child looks progressively more unwell each day
+- Headache and general malaise prominent
+- Reduced appetite
+- History of eating food from outside, street food, or drinking water of uncertain source
+- Relative bradycardia — heart rate lower than expected for the degree of fever
+  (this is a clinical sign, not something a caregiver can assess — note for clinic)
 
 Differentiating questions:
-- "Does the child have a cough?"
-- "Is the breathing faster than normal — or can you see the chest or neck
-  pulling in when the child breathes?"
-- "Is the child feeding or drinking much less than usual because of the breathing?"
+- How many days has the fever been present, and has it been getting worse each day?
+- Does the child have any stomach pain or discomfort?
+- Has the child been eating food from outside or drinking water you are unsure about?
+- Has the child had diarrhoea or constipation alongside the fever?
 
-Confirm towards chest infection if:
-- Fever + cough + fast breathing + chest indrawing
-- Fever + poor feeding + breathing difficulty + child looks unwell
+Confirm towards typhoid if:
+- Fever more than 3 days + worsening daily + abdominal discomfort
+- History of possibly contaminated food or water
+- No classic malaria chills and sweating pattern, or malaria treatment not improving fever
 
 Uncertainty note:
-- Fast breathing with fever — treat as urgent regardless of confidence level
-- Pneumonia can present without cough in young infants under 3 months
-- Malaria and pneumonia coexist frequently — if both patterns present, escalate
-  for both conditions simultaneously
-- In malnourished children — pneumonia signs may be less obvious but illness
-  more severe
+- Typhoid and malaria can coexist in Nigerian children
+- If fever is not improving after 3 days despite treatment — consider typhoid strongly
+- Typhoid in young children can present atypically — prolonged fever without clear
+  localising signs still warrants investigation
 
 ---
 
-### DISEASE 4: SEVERE ANAEMIA
-Nigerian / Kano priority: HIGH — malnutrition affects 62% of under-5 children
-in Kano; anaemia commonly coexists with malaria and infection
+### DISEASE 4: BACTERIAL MENINGITIS
+Nigerian priority: HIGH — must never be missed; fatal if delayed
 
 Key differentiating features:
-- Pallor of inner lower eyelids, palms, and lips — pale or white rather than pink
-- Child extremely weak — lying still, uninterested in surroundings, not
-  wanting to move
-- Rapid or laboured breathing even at rest — from anaemia not chest infection
-- History of repeated malaria episodes
-- History of poor diet, poor weight gain, or visible wasting
-- History of sickle cell disease
+- Severe headache — older children report this; infants show extreme irritability and
+  high-pitched cry
+- Stiff neck — child resists bending neck forward; may be absent in infants under 12 months
+- Bulging fontanelle — the soft spot on the head is pushed outward in infants
+- Photophobia — child turns away from light, cries when exposed
+- Vomiting — often projectile, not preceded by nausea
+- Rapidly progressive deterioration — child worsening over hours, not days
+- Petechiae or purpura — small red or purple spots that do not fade when pressed
+  (this is a meningococcal emergency — go immediately)
+- Seizure with fever in a child who has not had febrile convulsions before
+- Child extremely irritable — cannot be comforted, screams when touched or moved
 
 Differentiating questions:
-- "Are the inside of the child's lower eyelids or the palms looking very pale —
-  white or almost white instead of pink?"
-- "Is the child extremely weak — not wanting to move at all, even to look around?"
+- Is the child's neck stiff — does the child resist or cry when you try to bend the head forward?
+- Is the child unusually irritable — screaming and impossible to comfort?
+- In an infant — is the soft spot on the top of the head bulging outward?
+- Has the child developed any small spots or rash on the skin?
+
+Confirm towards meningitis if:
+- Fever + stiff neck regardless of other findings
+- Fever + bulging fontanelle in infant
+- Fever + petechiae or purpura anywhere on skin — immediate emergency
+- Fever + extreme inconsolable irritability + rapid deterioration
+
+Uncertainty note:
+- Stiff neck may be absent in children under 12 months — absence does not exclude meningitis
+- If meningitis is suspected at any level of confidence — escalate immediately, do not wait
+- The window between suspicion and death in bacterial meningitis can be hours
+- Meningococcal meningitis with purpura is one of the fastest-killing infections in children
+
+---
+
+### DISEASE 5: URINARY TRACT INFECTION
+Nigerian priority: MEDIUM-HIGH — commonly missed in children, especially under 2
+
+Key differentiating features:
+- Fever without obvious source — no cough, no diarrhoea, no clear malaria pattern
+- Crying on urination — younger children cry, older children may report burning
+- Foul-smelling or cloudy urine
+- Frequent urination or straining to urinate
+- Vomiting and poor feeding in infants
+- Loin or back pain — older children may localise this; infants may just be irritable
+- More common in girls but occurs in boys too, especially uncircumcised boys under 1 year
+
+Differentiating questions:
+- Does the child cry when passing urine, or pass urine more frequently than usual?
+- Does the urine smell strongly or look cloudy?
+- Is there any pain in the child's back or side?
+
+Confirm towards UTI if:
+- Fever without obvious source in a young child + crying on urination + foul urine
+- Fever without source in a child under 2 — always consider UTI
+
+Uncertainty note:
+- UTI in infants and young children commonly presents as fever without any urinary symptoms
+- A child under 2 with unexplained fever and no other source — UTI must be actively considered
+- UTI can ascend to kidney infection rapidly in young children — do not delay clinic care
+
+---
+
+### DISEASE 6: SEVERE ANAEMIA WITH FEBRILE ILLNESS
+Nigerian priority: HIGH — extremely common coexisting condition in Kano children
+
+Key differentiating features:
+- Pallor of inner eyelids — most reliable sign; eyelids appear pale pink or white instead
+  of deep red
+- Pallor of palms and nail beds
+- Fast breathing driven by anaemia — not chest infection; no chest indrawing
+- Extreme weakness — child does not want to move, play, or feed
+- Jaundice in malaria anaemia — yellowing of eyes and skin may develop
+- History of poor diet, chronic illness, or recurrent malaria episodes
+
+Differentiating questions:
+- Are the inside of the child's lower eyelids looking very pale or white?
+- Are the child's palms or nail beds looking pale?
+- Has the child been sick frequently in the past few months?
 
 Confirm towards severe anaemia if:
-- Fever + marked pallor of eyelids or palms + extreme weakness
-- History of repeated malaria + pallor + poor diet
+- Fever + marked pallor of eyelids + fast breathing with no chest indrawing
+- Chronic illness or recurrent malaria + current fever + pallor
 
 Uncertainty note:
-- Severe pallor with fever in a child is a medical emergency — do not advise
-  home management
-- Anaemia and malaria coexist very commonly — diagnosing one does not exclude
-  the other
-- Malnourished children are at highest risk of severe anaemia
-
----
-
-### DISEASE 5: MENINGITIS AND SERIOUS BRAIN INFECTION
-Nigerian priority: HIGH in northern Nigeria — Nigeria is within the African
-meningitis belt; northern states carry disproportionate burden
-
-Key differentiating features:
-- Stiff neck — child cries or resists when neck is bent gently forward
-- Bulging soft spot (fontanelle) in an infant
-- Extreme sensitivity to light
-- Very high fever with child looking severely unwell
-- Seizure occurring with fever
-- Older child complains of severe headache
-- Child progressively deteriorating — worsening despite home treatment
-
-Differentiating questions:
-- "Is the child's neck stiff — does the child cry or pull away if you try to
-  gently bend the neck forward?"
-- "In a baby — does the soft spot on top of the head look swollen or pushed
-  outward?"
-
-Confirm towards serious brain infection if:
-- Fever + stiff neck
-- Fever + bulging fontanelle in infant
-- Fever + seizure + child looking severely unwell
-
-Uncertainty note:
-- Any suspicion of meningitis — escalate immediately. Do not ask further questions.
-- Meningitis is rapidly fatal without hospital treatment
-- Seizure with fever in northern Nigeria carries higher meningitis risk than
-  in other regions — always escalate
-- Rash with fever — if purple or dark red non-blanching spots present, this is
-  an emergency
+- Anaemia is almost never the only diagnosis — always explore the underlying cause
+- Malaria anaemia is the most common cause in this population
+- Severe anaemia requiring transfusion is only treatable at hospital — always escalate
 
 ---
 
 ### GENERAL UNCERTAINTY RULE
-- If fever present in child under 5 and cause unclear after maximum questions —
-  default to possible malaria, advise urgent clinic visit same day
-- Never advise home management for unexplained fever in a child
-- When in doubt — escalate. Uncertainty is never a reason to reassure.
-- Coexisting conditions are the rule not the exception in Kano:
-  malaria + anaemia, malaria + pneumonia, typhoid + malaria
-- Malnourished child with any fever — escalate sooner, illness is always more
-  severe in malnourished children
-- Fever beyond 3 days in any child without clear cause — escalate regardless
-  of how well child appears to caregiver
+- Any fever in a child under 3 months — emergency, escalate immediately without further questions
+- Any fever in a child under 5 where cause is unclear after reasoning — default to possible malaria
+  and advise same-day clinic visit
+- Coexisting conditions are the rule not the exception in Kano — malaria plus pneumonia plus
+  anaemia plus malnutrition can all be present simultaneously
+- Malnourished child with any fever — escalate sooner; deterioration is faster and less predictable
+- When in doubt — escalate. Uncertainty is never a reason to reassure a caregiver about fever
+  in a Nigerian child under 5.

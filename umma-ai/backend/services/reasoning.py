@@ -207,10 +207,12 @@ def process_message(
         language = chosen_language
 
     # Check if user is switching language mid-conversation
-    language_switch = detect_language_choice(message)
-    if language_switch and language_switch != language:
-        save_user_language(user_id, language_switch)
-        language = language_switch
+    # Only check short messages to avoid unnecessary LLM calls during clinical conversations
+    if len(message.split()) <= 8:
+        language_switch = detect_language_choice(message)
+        if language_switch and language_switch != language:
+            save_user_language(user_id, language_switch)
+            language = language_switch
 
     lang_instruction = language_instruction(language)
 
@@ -233,6 +235,32 @@ def process_message(
             {"role": "system", "content": UMMA_SYSTEM_PROMPT + f"\n\n{lang_instruction}"},
             *history_messages,
             {"role": "user", "content": f"User message: {message}\nRelevant knowledge: {rag_context}\n{lang_instruction}"}
+        ])
+        if response == CONTENT_FILTER_FALLBACK:
+            response = REASONING_SAFE_FALLBACK
+        save_message(session_id, "assistant", response)
+        return response, rag_debug
+
+    if intent == "first_aid":
+        rag_context = do_retrieve("first_aid", message, intent, conversation=full_conversation)
+        response = call_llm_safe([
+            {"role": "system", "content": UMMA_SYSTEM_PROMPT + f"
+
+{lang_instruction}"},
+            *history_messages,
+            {"role": "user", "content": f"""
+User message: {message}
+First aid knowledge: {rag_context}
+
+Give clear, calm, immediate first aid guidance.
+Number every step. Keep each step short.
+Tell the user what to do RIGHT NOW.
+Tell them what NOT to do — common mistakes in Nigerian context.
+Tell them clearly when to go to hospital.
+End with a safety net.
+Never replace emergency services.
+{lang_instruction}
+"""}
         ])
         if response == CONTENT_FILTER_FALLBACK:
             response = REASONING_SAFE_FALLBACK

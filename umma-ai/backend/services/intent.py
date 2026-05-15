@@ -19,7 +19,8 @@ INTENTS = [
     "pregnancy_info",
     "child_health_info",
     "general_health",
-    "emergency"
+    "emergency",
+    "first_aid"
 ]
 
 def classify_intent(message: str) -> str:
@@ -39,6 +40,7 @@ Rules:
 - If it sounds like an emergency: emergency
 - If asking about pregnancy information: pregnancy_info
 - If asking about child health information: child_health_info
+- If the message describes poisoning, choking, burns, foreign body, animal bite, head injury, drowning: first_aid
 - Otherwise: general_health
 
 Respond with ONLY the intent label. Nothing else."""

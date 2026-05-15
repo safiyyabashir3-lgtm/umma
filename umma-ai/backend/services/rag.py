@@ -219,7 +219,7 @@ def retrieve_for_stage(
             all_disease_content, all_disease_names = "", []
         symptom_content, symptom_files = fetch_files("symptoms", topics, subcategory)
         _get_log().append({"category": "disease (all)", "files": all_disease_names})
-        _get_log().append({"category": "symptoms", "files": symptom_files[1] if isinstance(symptom_files, tuple) else symptom_files})
+        _get_log().append({"category": "symptoms", "files": symptom_files[1]})
         return all_disease_content + "\n\n========\n\n" + symptom_content
 
     elif stage == "management":
@@ -256,6 +256,11 @@ def retrieve_for_stage(
     elif stage in ["child_health_info", "child_health_education"]:
         content, files = fetch_files("child_health_education", topics, "child")
         _get_log().append({"category": "child_health_education", "files": files})
+        return content
+
+    elif stage == "first_aid":
+        content, files = fetch_files("first_aid", topics, None)
+        _get_log().append({"category": "first_aid", "files": files})
         return content
 
     else:
