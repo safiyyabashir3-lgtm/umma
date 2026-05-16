@@ -22,7 +22,6 @@ DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT")
 
 CATEGORY_CONFIG = {
     "symptoms": {"safety_level": "high"},
-    "clinical_reasoning_guide": {"safety_level": "high"},
     "disease": {"safety_level": "high"},
     "symptom_care": {"safety_level": "medium"},
     "medication": {"safety_level": "high"},
@@ -127,7 +126,6 @@ def main():
     base = "/workspaces/umma/umma-ai/knowledge_base"
     folders = {
         "symptoms": f"{base}/symptoms",
-        "clinical_reasoning_guide": f"{base}/clinical_reasoning_guide",
         "disease": f"{base}/disease",
         "symptom_care": f"{base}/symptom_care",
         "medication": f"{base}/medication",

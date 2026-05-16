@@ -181,7 +181,7 @@ def process_message(
     # Previously do_retrieve was a closure that referenced full_conversation from the
     # outer scope — defined before full_conversation was assigned, which worked due to
     # Python late binding but was fragile and would silently break if code was reordered.
-    def do_retrieve(stage, query, intent, conversation, topic=None, symptoms=None):
+    def do_retrieve(stage, query, intent, conversation, topic=None, symptoms=None, extra_context=None):
         clear_retrieval_log()
         context = retrieve_for_stage(
             stage=stage,
@@ -189,7 +189,8 @@ def process_message(
             query=query,
             intent=intent,
             topic=topic,
-            symptoms=symptoms
+            symptoms=symptoms,
+            extra_context=extra_context
         )
         rag_debug["category"] = stage
         rag_debug["topic"] = topic or "—"
@@ -229,7 +230,27 @@ def process_message(
 
     # Step 4 — Non-symptom intents
     if intent in ["pregnancy_info", "child_health_info", "general_health"]:
-        rag_context = do_retrieve(intent, message, intent, full_conversation)
+        # For general_health, retrieve from both education categories
+        if intent == "general_health":
+            pregnancy_context = retrieve_for_stage(
+                stage="pregnancy_education",
+                query=message,
+                intent=intent,
+                conversation=full_conversation
+            )
+            child_context = retrieve_for_stage(
+                stage="child_health_education",
+                query=message,
+                intent=intent,
+                conversation=full_conversation
+            )
+            rag_context = pregnancy_context + "
+
+========
+
+" + child_context
+        else:
+            rag_context = do_retrieve(intent, message, intent, full_conversation)
         # FIX: use call_llm_safe so content filter errors return a fallback, not a crash
         response = call_llm_safe([
             {"role": "system", "content": UMMA_SYSTEM_PROMPT + f"\n\n{lang_instruction}"},
@@ -484,7 +505,11 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
         rag_context = do_retrieve(
             "management", message, intent, full_conversation,
             state.get("symptom_topic"),
-            state.get("reported_symptoms", [])
+            state.get("reported_symptoms", []),
+            extra_context={
+                "active_differentials": state.get("active_differentials", []),
+                "internal_diagnosis": state.get("internal_diagnosis")
+            }
         )
 
         # FIX: use call_llm_safe for the management response

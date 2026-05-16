@@ -34,14 +34,14 @@ Classify the user message into exactly one of these intents:
 {', '.join(INTENTS)}
 
 Rules:
-- If the message describes a symptom in a pregnant woman: pregnancy_symptom
-- If the message describes a symptom in a child: child_symptom
-- If the message asks about medicine safety: medication_safety
-- If it sounds like an emergency: emergency
-- If asking about pregnancy information: pregnancy_info
-- If asking about child health information: child_health_info
-- If the message describes poisoning, choking, burns, foreign body, animal bite, head injury, drowning: first_aid
-- Otherwise: general_health
+- If the message describes a symptom, pain, discomfort, or illness in a pregnant woman: pregnancy_symptom
+- If the message describes a symptom, pain, discomfort, or illness in a child: child_symptom
+- If the message asks whether a medicine or treatment is safe, or about drug interactions: medication_safety
+- If the message describes poisoning, choking, burns, foreign body in eye/ear/nose, animal bite, head injury, drowning, or any acute injury: first_aid
+- If it sounds like an immediate life-threatening emergency: emergency
+- If asking for information about pregnancy, antenatal care, nutrition in pregnancy, breastfeeding, danger signs in pregnancy, or general pregnancy guidance (not a symptom): pregnancy_info
+- If asking for information about child health, vaccines, child nutrition, newborn care, developmental milestones, or general child health guidance (not a symptom): child_health_info
+- If the message is a greeting, general question, or does not fit any above category: general_health
 
 Respond with ONLY the intent label. Nothing else."""
             },
