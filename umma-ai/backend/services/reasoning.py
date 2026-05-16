@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from openai import AzureOpenAI
 from supabase import create_client
 from prompts.system_prompt import UMMA_SYSTEM_PROMPT
-from prompts.reasoning_prompts import DISEASE_REASONING_PROMPT, MANAGEMENT_PROMPT, TRIAGE_PROMPT  # FIX: import TRIAGE_PROMPT
+from prompts.reasoning_prompts import DISEASE_REASONING_PROMPT, MANAGEMENT_PROMPT, TRIAGE_PROMPT
 from services.rag import retrieve_for_stage, clear_retrieval_log
 from services.language import (
     get_user_language,
@@ -35,7 +35,6 @@ MAX_TRIAGE_QUESTIONS = 3
 MIN_REASONING_QUESTIONS = 2
 MAX_REASONING_QUESTIONS = 5
 
-# Safe fallback messages — used when LLM calls fail or return unusable output
 TRIAGE_SAFE_FALLBACK = (
     "I am sorry, I was not able to process your message properly just now. "
     "Please try describing your symptoms again, or go to your nearest clinic if you are worried. "
@@ -48,6 +47,8 @@ REASONING_SAFE_FALLBACK = (
     "Please try describing your symptoms again in different words, or visit your nearest clinic if you are worried. "
     "If anything feels very serious or suddenly worse, please go to hospital immediately."
 )
+
+CONTENT_FILTER_FALLBACK = "__CONTENT_FILTER_BLOCKED__"
 
 
 def get_clinical_state(session_id: str) -> dict:
@@ -78,8 +79,6 @@ def save_clinical_state(session_id: str, state: dict):
                 .insert(state)\
                 .execute()
     except Exception as e:
-        # Clinical state loss is a patient safety risk — log clearly and re-raise
-        # so the caller returns a safe fallback rather than continuing with stale state.
         print(f"CRITICAL: Failed to save clinical state for session {session_id}: {e}")
         raise RuntimeError(f"Clinical state save failed for session {session_id}") from e
 
@@ -118,12 +117,6 @@ def call_llm(messages: list, temperature: float = 0.3, max_tokens: int = 700) ->
     return response.choices[0].message.content.strip()
 
 
-CONTENT_FILTER_FALLBACK = "__CONTENT_FILTER_BLOCKED__"
-
-
-# FIX: call_llm_safe is now the function used for ALL clinical text responses
-# Previously it was defined but never called — every clinical call used call_llm directly,
-# meaning content filter errors crashed the request with no fallback response.
 def call_llm_safe(messages: list, temperature: float = 0.3, max_tokens: int = 700) -> str:
     try:
         return call_llm(messages, temperature=temperature, max_tokens=max_tokens)
@@ -149,21 +142,14 @@ def call_llm_json(messages: list) -> dict:
         return json.loads(clean)
     except Exception as e:
         print(f"call_llm_json parse failed. Error: {e}. Raw response: {raw[:300]}")
-        # FIX: return a sentinel so callers can detect parse failure explicitly,
-        # rather than an empty dict that silently passes all .get() safety checks
         return {"__parse_failed": True}
 
 
-# FIX: triage_result_is_safe checks that the result is actionable before use.
-# Previously, an empty dict from a parse failure would pass all .get() checks
-# with falsy values, causing triage to be silently skipped and the user to fall
-# through to disease reasoning with no emergency check performed.
 def triage_result_is_safe(result: dict) -> bool:
     if not result:
         return False
     if result.get("__content_filtered") or result.get("__parse_failed"):
         return False
-    # Must have at least is_emergency as an explicit key
     if "is_emergency" not in result:
         return False
     return True
@@ -177,10 +163,6 @@ def process_message(
 ) -> tuple:
     rag_debug = {"category": "—", "topic": "—", "chunks": []}
 
-    # FIX: full_conversation is now passed explicitly into do_retrieve as a parameter.
-    # Previously do_retrieve was a closure that referenced full_conversation from the
-    # outer scope — defined before full_conversation was assigned, which worked due to
-    # Python late binding but was fragile and would silently break if code was reordered.
     def do_retrieve(stage, query, intent, conversation, topic=None, symptoms=None, extra_context=None):
         clear_retrieval_log()
         context = retrieve_for_stage(
@@ -207,8 +189,7 @@ def process_message(
             return lang_response, rag_debug
         language = chosen_language
 
-    # Check if user is switching language mid-conversation
-    # Only check short messages to avoid unnecessary LLM calls during clinical conversations
+    # Only check short messages for language switching
     if len(message.split()) <= 8:
         language_switch = detect_language_choice(message)
         if language_switch and language_switch != language:
@@ -230,7 +211,6 @@ def process_message(
 
     # Step 4 — Non-symptom intents
     if intent in ["pregnancy_info", "child_health_info", "general_health"]:
-        # For general_health, retrieve from both education categories
         if intent == "general_health":
             pregnancy_context = retrieve_for_stage(
                 stage="pregnancy_education",
@@ -244,14 +224,9 @@ def process_message(
                 intent=intent,
                 conversation=full_conversation
             )
-            rag_context = pregnancy_context + "
-
-========
-
-" + child_context
+            rag_context = pregnancy_context + "\n\n========\n\n" + child_context
         else:
             rag_context = do_retrieve(intent, message, intent, full_conversation)
-        # FIX: use call_llm_safe so content filter errors return a fallback, not a crash
         response = call_llm_safe([
             {"role": "system", "content": UMMA_SYSTEM_PROMPT + f"\n\n{lang_instruction}"},
             *history_messages,
@@ -265,9 +240,7 @@ def process_message(
     if intent == "first_aid":
         rag_context = do_retrieve("first_aid", message, intent, conversation=full_conversation)
         response = call_llm_safe([
-            {"role": "system", "content": UMMA_SYSTEM_PROMPT + f"
-
-{lang_instruction}"},
+            {"role": "system", "content": UMMA_SYSTEM_PROMPT + f"\n\n{lang_instruction}"},
             *history_messages,
             {"role": "user", "content": f"""
 User message: {message}
@@ -290,7 +263,6 @@ Never replace emergency services.
 
     if intent == "medication_safety":
         rag_context = do_retrieve("medication", message, intent, full_conversation)
-        # FIX: use call_llm_safe
         response = call_llm_safe([
             {"role": "system", "content": UMMA_SYSTEM_PROMPT + f"\n\n{lang_instruction}"},
             *history_messages,
@@ -334,9 +306,6 @@ Be thorough — include every symptom mentioned in any message."""
     state["reported_symptoms"] = reported_symptoms
     state["symptom_topic"] = symptom_topic
 
-    # Helper defined at function scope so it is available in all stages,
-    # not just triage. A DB failure during any state save returns a safe
-    # fallback response rather than crashing with an UnboundLocalError.
     def safe_save_state(s):
         try:
             save_clinical_state(session_id, s)
@@ -351,7 +320,7 @@ Be thorough — include every symptom mentioned in any message."""
 
         triage_result = call_llm_json([
             {"role": "system", "content": UMMA_SYSTEM_PROMPT},
-            {"role": "user", "content": TRIAGE_PROMPT.format(  # FIX: use named constant from reasoning_prompts.py
+            {"role": "user", "content": TRIAGE_PROMPT.format(
                 full_conversation=json.dumps(full_conversation),
                 reported_symptoms=reported_symptoms,
                 rag_context=rag_context,
@@ -360,21 +329,15 @@ Be thorough — include every symptom mentioned in any message."""
             )}
         ])
 
-        # FIX: explicitly validate the triage result before acting on it.
-        # An empty dict or parse failure previously fell through all checks silently,
-        # skipping the emergency gate and sending the user into disease reasoning
-        # without any red flag check having been performed.
         if not triage_result_is_safe(triage_result):
             save_message(session_id, "assistant", TRIAGE_SAFE_FALLBACK)
             return TRIAGE_SAFE_FALLBACK, rag_debug
-
 
         if triage_result.get("is_emergency"):
             state["stage"] = "concluded"
             state["action_tier"] = "emergency"
             state["concluded"] = True
             if not safe_save_state(state): return TRIAGE_SAFE_FALLBACK, rag_debug
-            # use call_llm_safe for the emergency response
             response = call_llm_safe([
                 {"role": "system", "content": UMMA_SYSTEM_PROMPT},
                 {"role": "user", "content": f"""
@@ -392,7 +355,6 @@ YOUR RESPONSE MUST:
 DO NOT give home management advice.
 DO NOT name any diagnosis.
 DO NOT use hollow reassuring phrases.
-DO NOT make it longer than it needs to be — she needs to act, not read.
 {lang_instruction}
 """}
             ])
@@ -416,11 +378,11 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
     if state["stage"] == "disease_reasoning":
         symptom_context = retrieve_for_stage(
             stage="triage",
-            conversation=full_conversation,
             query=message,
             intent=intent,
             topic=symptom_topic,
-            symptoms=reported_symptoms
+            symptoms=reported_symptoms,
+            conversation=full_conversation
         )
         rag_context = do_retrieve(
             "disease_reasoning", message, intent, full_conversation,
@@ -450,14 +412,11 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
         needs_more = reasoning_result.get("needs_more_info", False)
         next_question = reasoning_result.get("next_question")
 
-        # Floor enforcement: if under minimum, generate a fallback question
-        # rather than allowing the LLM to skip ahead with next_question=null.
         if (
             questions_so_far < MIN_REASONING_QUESTIONS
             and not next_question
             and questions_so_far < MAX_REASONING_QUESTIONS
         ):
-            # LLM tried to conclude too early — ask it for a question explicitly
             followup = call_llm_json([
                 {"role": "system", "content": UMMA_SYSTEM_PROMPT},
                 {"role": "user", "content": (
@@ -489,7 +448,6 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
             save_message(session_id, "assistant", next_question)
             return next_question, rag_debug
 
-        # Conclude reasoning
         state["stage"] = "management"
         state["internal_diagnosis"] = reasoning_result.get("primary_diagnosis")
         state["secondary_diagnosis"] = reasoning_result.get("secondary_diagnosis")
@@ -512,7 +470,6 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
             }
         )
 
-        # FIX: use call_llm_safe for the management response
         response = call_llm_safe([
             {"role": "system", "content": UMMA_SYSTEM_PROMPT},
             {"role": "user", "content": MANAGEMENT_PROMPT.format(
@@ -533,7 +490,6 @@ DO NOT make it longer than it needs to be — she needs to act, not read.
         return response, rag_debug
 
     # Fallback
-    # FIX: use call_llm_safe
     fallback = call_llm_safe([
         {"role": "system", "content": UMMA_SYSTEM_PROMPT},
         {"role": "user", "content": f"{message}\n\n{lang_instruction}"}
