@@ -35,49 +35,195 @@ def clear_retrieval_log():
     _get_log().clear()
 
 
+# ─── VALID TOPIC VOCABULARIES (sourced directly from DB) ──────────────────────
+
+SYMPTOM_TOPICS_PREGNANCY = [
+    "abdominalpain", "bleeding", "breathlessness", "fetal", "fever",
+    "headache", "oedema", "postpartum_bleeding", "urinary", "vaginal_discharge", "vomiting"
+]
+
+SYMPTOM_TOPICS_CHILD = [
+    "abdominal_pain", "abdominal_swelling", "breathing", "conjunctivitis",
+    "convulsion", "cord", "cough", "diarrhoea", "ear_pain", "excessive_crying",
+    "fever", "jaundice", "poor_feeding", "rash", "toothache", "urinary", "vomiting"
+]
+
+SYMPTOM_CARE_TOPICS_PREGNANCY = [
+    "abdominal_pain", "bleeding", "breathlessness", "discharge", "fever",
+    "headache", "oedema", "postpartum_bleeding", "urinary", "vomiting"
+]
+
+SYMPTOM_CARE_TOPICS_CHILD = [
+    "abdominal_pain", "breathing", "convulsion", "cough", "crying",
+    "diarrhoea", "ear", "eye", "feeding", "fever", "rash", "toothache", "urinary", "vomiting"
+]
+
+DISEASE_TOPICS_PREGNANCY = [
+    "abruption", "anaemia", "asthma", "chorioamnionitis", "ectopic",
+    "fetal_distress", "hyperemesis", "IUGR", "labour", "malaria",
+    "miscarriage", "placenta praevia", "pneumonia", "preeclampsia",
+    "STIs", "uti", "vaginosis"
+]
+
+DISEASE_TOPICS_CHILD = [
+    "bronchiolitis", "chickenpox", "cholera", "colic", "conjunctivitis",
+    "croup", "dental caries", "dysentery", "gastroenteritis", "helminthiasis",
+    "intestinal_obstruction", "malaria", "malnutrition", "measles", "meningitis",
+    "miliaria", "otitis", "pneumonia", "sicklecell", "skin infections",
+    "thrush", "tuberculosis", "typhoid", "UTI"
+]
+
+
+def resolve_subcategory(intent: str, fallback: str = None) -> str:
+    if "pregnancy" in intent:
+        return "pregnancy"
+    elif "child" in intent:
+        return "child"
+    return fallback
+
+
+def map_symptoms_to_topics(
+    reported_symptoms: list,
+    subcategory: str,
+    category: str,
+    conversation: list = None,
+    active_differentials: list = None
+) -> list:
+    if category == "symptoms":
+        valid_topics = SYMPTOM_TOPICS_PREGNANCY if subcategory == "pregnancy" else SYMPTOM_TOPICS_CHILD
+    elif category == "symptom_care":
+        valid_topics = SYMPTOM_CARE_TOPICS_PREGNANCY if subcategory == "pregnancy" else SYMPTOM_CARE_TOPICS_CHILD
+    else:
+        return []
+
+    extra_context = ""
+    if active_differentials:
+        extra_context += f"Active differentials being considered: {json.dumps(active_differentials)}\n"
+    if conversation:
+        extra_context += f"Recent conversation: {json.dumps(conversation[-4:])}\n"
+
+    try:
+        response = client.chat.completions.create(
+            model=DEPLOYMENT,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You map clinical information to database topic keys.\n"
+                        "You MUST only return topics from the valid list provided.\n"
+                        "Consider reported symptoms AND active differentials when selecting topics.\n"
+                        "For example: if malaria is a differential, include 'fever'. "
+                        "If preeclampsia is a differential, include 'headache' and 'oedema'.\n"
+                        "Do not invent or modify any topic.\n"
+                        f"Valid topics: {json.dumps(valid_topics)}\n\n"
+                        f"{extra_context}"
+                        'Return JSON only: {"topics": ["topic1", "topic2"]}'
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": f"Reported symptoms: {json.dumps(reported_symptoms)}"
+                }
+            ],
+            temperature=0,
+            max_tokens=100
+        )
+        raw = response.choices[0].message.content.strip()
+        print(f"DEBUG map_symptoms_to_topics ({category}/{subcategory}) raw: {raw}")
+        clean = raw.replace("```json", "").replace("```", "").strip()
+        result = json.loads(clean)
+        topics = [t for t in result.get("topics", []) if t in valid_topics]
+        return topics if topics else valid_topics
+    except Exception as e:
+        print(f"map_symptoms_to_topics error: {e}")
+        return valid_topics
+
+
+def select_disease_topics(
+    reported_symptoms: list,
+    subcategory: str,
+    conversation: list = None,
+    active_differentials: list = None,
+    internal_diagnosis: str = None
+) -> list:
+    valid_topics = DISEASE_TOPICS_PREGNANCY if subcategory == "pregnancy" else DISEASE_TOPICS_CHILD
+
+    extra_context = ""
+    if active_differentials:
+        extra_context += f"Active differentials: {json.dumps(active_differentials)}\n"
+    if internal_diagnosis:
+        extra_context += f"Most likely diagnosis: {internal_diagnosis}\n"
+    if conversation:
+        extra_context += f"Recent conversation: {json.dumps(conversation[-6:])}\n"
+
+    try:
+        response = client.chat.completions.create(
+            model=DEPLOYMENT,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You select disease topics to retrieve for a Nigerian maternal/child health case.\n"
+                        "You MUST only return topics from the valid list provided. Do not invent any topic.\n"
+                        "Return 3 to 5 topics maximum — most clinically relevant first.\n"
+                        f"Subcategory: {subcategory}\n"
+                        f"Valid disease topics: {json.dumps(valid_topics)}\n"
+                        f"{extra_context}"
+                        'Return JSON only: {"topics": ["topic1", "topic2", "topic3"]}'
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": f"Reported symptoms: {json.dumps(reported_symptoms)}"
+                }
+            ],
+            temperature=0,
+            max_tokens=100
+        )
+        raw = response.choices[0].message.content.strip()
+        print(f"DEBUG select_disease_topics ({subcategory}) raw: {raw}")
+        clean = raw.replace("```json", "").replace("```", "").strip()
+        result = json.loads(clean)
+        topics = [t for t in result.get("topics", []) if t in valid_topics]
+        return topics if topics else []
+    except Exception as e:
+        print(f"select_disease_topics error: {e}")
+        return []
+
+
 def select_topics(
     conversation: list,
     stage: str,
     intent: str,
     reported_symptoms: list
 ) -> list:
-    subcategory = "pregnancy" if "pregnancy" in intent else "child" if "child" in intent else "general"
+    subcategory = resolve_subcategory(intent, fallback="general")
 
-    response = client.chat.completions.create(
-        model=DEPLOYMENT,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a medical knowledge retrieval specialist for a Nigerian maternal and child health app.\n"
-                    "Given a conversation, clinical stage, and reported symptoms, decide which medical topics to retrieve.\n\n"
-                    f"Current stage: {stage}\n"
-                    f"Intent: {intent}\n"
-                    f"Subcategory: {subcategory}\n"
-                    f"Reported symptoms: {reported_symptoms}\n\n"
-                    "Rules:\n"
-                    "- For triage: return topics matching all reported symptoms\n"
-                    "- For disease_reasoning: return topics for all reported symptoms AND all plausible differential diagnoses given the Nigerian context\n"
-                    "- For management: return topics for the most likely conditions and all reported symptoms\n"
-                    "- Only suggest conditions relevant to Nigerian maternal and child health context\n"
-                    "- Do not suggest conditions extremely rare in Nigeria such as dengue, chikungunya, COVID-19, influenza\n"
-                    "- Focus on: malaria, typhoid, UTI, anaemia, preeclampsia, pneumonia, sepsis, malnutrition\n"
-                    "- Return as many genuinely relevant topics as needed\n"
-                    "- Topics should be single words or short phrases matching medical condition names\n\n"
-                    'Return JSON only: {"topics": ["topic1", "topic2", "topic3"]}'
-                )
-            },
-            {
-                "role": "user",
-                "content": f"Conversation: {json.dumps(conversation[-6:])}"
-            }
-        ],
-        temperature=0,
-        max_tokens=100
-    )
-
-    raw = response.choices[0].message.content.strip()
     try:
+        response = client.chat.completions.create(
+            model=DEPLOYMENT,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a medical knowledge retrieval specialist for a Nigerian maternal and child health app.\n"
+                        "Given a conversation and reported symptoms, decide which topics to retrieve.\n\n"
+                        f"Intent: {intent}\n"
+                        f"Subcategory: {subcategory}\n"
+                        f"Reported symptoms: {reported_symptoms}\n\n"
+                        "Return topics as single words or short phrases.\n"
+                        'Return JSON only: {"topics": ["topic1", "topic2", "topic3"]}'
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": f"Conversation: {json.dumps(conversation[-6:])}"
+                }
+            ],
+            temperature=0,
+            max_tokens=100
+        )
+        raw = response.choices[0].message.content.strip()
         clean = raw.replace("```json", "").replace("```", "").strip()
         result = json.loads(clean)
         return result.get("topics", reported_symptoms or ["general"])
@@ -85,110 +231,32 @@ def select_topics(
         return reported_symptoms or ["general"]
 
 
-def select_disease_files(
-    conversation: list,
-    stage: str,
-    intent: str,
-    reported_symptoms: list,
-    subcategory: str,
-    active_differentials: list = None,
-    internal_diagnosis: str = None
-) -> list:
-    differentials_context = ""
-    if active_differentials:
-        differentials_context += f"Active differentials being considered: {active_differentials}\n"
-    if internal_diagnosis:
-        differentials_context += f"Most likely diagnosis: {internal_diagnosis}\n"
-
-    response = client.chat.completions.create(
-        model=DEPLOYMENT,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a medical knowledge retrieval specialist for a Nigerian maternal and child health app.\n"
-                    "Given a clinical conversation, select which disease knowledge files to retrieve.\n\n"
-                    f"Stage: {stage}\n"
-                    f"Subcategory: {subcategory}\n"
-                    f"Reported symptoms: {reported_symptoms}\n"
-                    f"{differentials_context}\n"
-                    "File naming convention examples:\n"
-                    "- malaria_child.md, severe_malaria_child.md, pneumonia_child.md\n"
-                    "- malaria_pregnancy.md, preeclampsia.md, anaemia_pregnancy.md\n"
-                    "- Files follow pattern: condition_subcategory.md or condition.md\n\n"
-                    "Rules:\n"
-                    "- Return 4 to 6 file names maximum — most clinically relevant only\n"
-                    "- Always include the file for the most likely diagnosis first\n"
-                    "- Include files for other active differentials\n"
-                    "- Only include files relevant to Nigerian maternal and child health\n"
-                    "- Use exact file naming convention — condition name in lowercase with underscores\n"
-                    "- Subcategory suffix: _child for child conditions, _pregnancy for pregnancy conditions\n"
-                    "- Some files have no suffix if they apply generally e.g. preeclampsia.md\n\n"
-                    'Return JSON only: {"files": ["filename1.md", "filename2.md", "filename3.md"]}'
-                )
-            },
-            {
-                "role": "user",
-                "content": f"Conversation: {json.dumps(conversation[-8:])}"
-            }
-        ],
-        temperature=0,
-        max_tokens=150
-    )
-
-    raw = response.choices[0].message.content.strip()
-    try:
-        clean = raw.replace("```json", "").replace("```", "").strip()
-        result = json.loads(clean)
-        return result.get("files", [])
-    except:
-        return []
-
-
-def fetch_disease_files_by_name(
-    file_names: list,
+def fetch_disease_files_by_topic(
+    topics: list,
     subcategory: str = None
 ) -> tuple:
     all_contents = []
     seen_files = set()
     files_retrieved = []
 
-    for fname in file_names:
+    for topic in topics:
         try:
-            result = supabase.table("documents")\
+            query = supabase.table("documents")\
                 .select("content, file_name")\
                 .eq("category", "disease")\
-                .eq("file_name", fname)\
-                .execute()
-
-            for doc in (result.data or []):
-                fn = doc.get("file_name", "")
-                if fn not in seen_files:
-                    seen_files.add(fn)
-                    files_retrieved.append(fn)
-                    all_contents.append(
-                        f"### FILE: {fn}\n\n{doc['content']}"
-                    )
-        except Exception as e:
-            print(f"Fetch error for file {fname}: {e}")
-
-    if not all_contents:
-        print("Named file fetch failed — falling back to subcategory fetch")
-        try:
-            q = supabase.table("documents").select("content, file_name").eq("category", "disease")
+                .eq("topic", topic)
             if subcategory:
-                q = q.eq("subcategory", subcategory)
-            result = q.execute()
+                query = query.eq("subcategory", subcategory)
+            result = query.execute()
+            print(f"DEBUG fetch_disease topic='{topic}' subcategory='{subcategory}': got {len(result.data or [])} rows")
             for doc in (result.data or []):
                 fn = doc.get("file_name", "")
                 if fn not in seen_files:
                     seen_files.add(fn)
                     files_retrieved.append(fn)
-                    all_contents.append(
-                        f"### FILE: {fn}\n\n{doc['content']}"
-                    )
+                    all_contents.append(f"### FILE: {fn}\n\n{doc['content']}")
         except Exception as e:
-            print(f"Fallback fetch error: {e}")
+            print(f"fetch_disease_files_by_topic error for topic '{topic}': {e}")
 
     return "\n\n========\n\n".join(all_contents), files_retrieved
 
@@ -213,6 +281,7 @@ def fetch_files(
                 query = query.eq("subcategory", subcategory)
 
             result = query.execute()
+            print(f"DEBUG fetch_files category='{category}' topic='{topic}' subcategory='{subcategory}': got {len(result.data or [])} rows")
 
             for doc in (result.data or []):
                 fname = doc.get("file_name", "")
@@ -227,6 +296,7 @@ def fetch_files(
             print(f"Fetch error for topic {topic}: {e}")
 
     if not all_contents and subcategory:
+        print(f"WARNING: No results with subcategory='{subcategory}' for topics {topics} in {category} — retrying without subcategory")
         for topic in topics:
             try:
                 result = supabase.table("documents")\
@@ -247,6 +317,7 @@ def fetch_files(
                 print(f"Fallback fetch error for topic {topic}: {e}")
 
     if not all_contents:
+        print(f"WARNING: No files found for topics {topics} in {category}/{subcategory} — fetching entire category")
         try:
             query = supabase.table("documents")\
                 .select("content, file_name")\
@@ -280,36 +351,39 @@ def retrieve_for_stage(
     symptoms = symptoms or []
     conversation = conversation or [{"role": "user", "content": query}]
 
-    subcategory = None
-    if "pregnancy" in intent:
-        subcategory = "pregnancy"
-    elif "child" in intent:
-        subcategory = "child"
+    subcategory = resolve_subcategory(intent)
 
-    topics = select_topics(
-        conversation=conversation,
-        stage=stage,
-        intent=intent,
-        reported_symptoms=symptoms
-    )
-
-    print(f"RAG: stage={stage} | topics={topics} | subcategory={subcategory}")
+    print(f"RAG: stage={stage} | subcategory={subcategory} | symptoms={symptoms}")
 
     if stage == "triage":
+        topics = map_symptoms_to_topics(
+            reported_symptoms=symptoms,
+            subcategory=subcategory or "child",
+            category="symptoms",
+            conversation=conversation
+        )
+        print(f"RAG triage topics mapped: {topics}")
         content, files = fetch_files("symptoms", topics, subcategory)
         _get_log().append({"category": "symptoms", "files": files})
         return content
 
     elif stage == "disease_reasoning":
-        disease_file_names = select_disease_files(
-            conversation=conversation,
-            stage=stage,
-            intent=intent,
+        disease_topics = select_disease_topics(
             reported_symptoms=symptoms,
-            subcategory=subcategory
+            subcategory=subcategory or "child",
+            conversation=conversation
         )
-        disease_content, disease_files = fetch_disease_files_by_name(disease_file_names, subcategory)
-        symptom_content, symptom_files = fetch_files("symptoms", topics, subcategory)
+        print(f"RAG disease_reasoning topics: {disease_topics}")
+        disease_content, disease_files = fetch_disease_files_by_topic(disease_topics, subcategory)
+
+        symptom_topics = map_symptoms_to_topics(
+            reported_symptoms=symptoms,
+            subcategory=subcategory or "child",
+            category="symptoms",
+            conversation=conversation
+        )
+        symptom_content, symptom_files = fetch_files("symptoms", symptom_topics, subcategory)
+
         _get_log().append({"category": "disease (selected)", "files": disease_files})
         _get_log().append({"category": "symptoms", "files": symptom_files})
         return disease_content + "\n\n========\n\n" + symptom_content
@@ -317,42 +391,62 @@ def retrieve_for_stage(
     elif stage == "management":
         active_differentials = extra_context.get("active_differentials", []) if extra_context else []
         internal_diagnosis = extra_context.get("internal_diagnosis") if extra_context else None
-        disease_file_names = select_disease_files(
-            conversation=conversation,
-            stage=stage,
-            intent=intent,
+
+        disease_topics = select_disease_topics(
             reported_symptoms=symptoms,
-            subcategory=subcategory,
+            subcategory=subcategory or "child",
+            conversation=conversation,
             active_differentials=active_differentials,
             internal_diagnosis=internal_diagnosis
         )
-        disease_content, disease_files = fetch_disease_files_by_name(disease_file_names, subcategory)
-        care_content, care_files = fetch_files("symptom_care", topics, subcategory)
+        print(f"RAG management disease topics: {disease_topics}")
+        disease_content, disease_files = fetch_disease_files_by_topic(disease_topics, subcategory)
+
+        care_topics = map_symptoms_to_topics(
+            reported_symptoms=symptoms,
+            subcategory=subcategory or "child",
+            category="symptom_care",
+            conversation=conversation,
+            active_differentials=active_differentials
+        )
+        print(f"RAG management care topics: {care_topics}")
+        care_content, care_files = fetch_files("symptom_care", care_topics, subcategory)
+
         _get_log().append({"category": "disease (selected)", "files": disease_files})
         _get_log().append({"category": "symptom_care", "files": care_files})
         return disease_content + "\n\n========\n\n" + care_content
 
     elif stage == "medication":
+        topics = select_topics(conversation, stage, intent, symptoms)
         content, files = fetch_files("medication", topics, None)
         _get_log().append({"category": "medication", "files": files})
         return content
 
     elif stage in ["pregnancy_info", "pregnancy_education"]:
+        topics = select_topics(conversation, stage, intent, symptoms)
         content, files = fetch_files("pregnancy_education", topics, "pregnancy")
         _get_log().append({"category": "pregnancy_education", "files": files})
         return content
 
     elif stage in ["child_health_info", "child_health_education"]:
+        topics = select_topics(conversation, stage, intent, symptoms)
         content, files = fetch_files("child_health_education", topics, "child")
         _get_log().append({"category": "child_health_education", "files": files})
         return content
 
     elif stage == "first_aid":
+        topics = select_topics(conversation, stage, intent, symptoms)
         content, files = fetch_files("first_aid", topics, None)
         _get_log().append({"category": "first_aid", "files": files})
         return content
 
     else:
+        topics = map_symptoms_to_topics(
+            reported_symptoms=symptoms,
+            subcategory=subcategory or "child",
+            category="symptoms",
+            conversation=conversation
+        )
         content, files = fetch_files("symptoms", topics, subcategory)
         _get_log().append({"category": "symptoms", "files": files})
         return content

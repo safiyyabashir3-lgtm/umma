@@ -155,6 +155,38 @@ def triage_result_is_safe(result: dict) -> bool:
     return True
 
 
+def detect_subcategory(conversation: list) -> str:
+    """
+    Derives subcategory from conversation content directly,
+    not from the intent string which can be misclassified.
+    Returns 'pregnancy', 'child', or None.
+    """
+    try:
+        result = call_llm_json([
+            {
+                "role": "system",
+                "content": (
+                    "You determine whether a health conversation is about a pregnant woman or a child under 5.\n"
+                    "Return JSON only: {\"subcategory\": \"pregnancy\"} or {\"subcategory\": \"child\"} or {\"subcategory\": null}\n"
+                    "Return 'pregnancy' if the conversation is clearly about a pregnant or postpartum woman.\n"
+                    "Return 'child' if the conversation is clearly about a child or infant.\n"
+                    "Return null only if genuinely unclear."
+                )
+            },
+            {
+                "role": "user",
+                "content": f"Conversation: {json.dumps(conversation[-4:])}"
+            }
+        ])
+        subcategory = result.get("subcategory")
+        if subcategory in ["pregnancy", "child"]:
+            print(f"DEBUG detect_subcategory: {subcategory}")
+            return subcategory
+    except Exception as e:
+        print(f"detect_subcategory error: {e}")
+    return None
+
+
 def process_message(
     user_id: str,
     session_id: str,
@@ -275,10 +307,31 @@ Never replace emergency services.
 
     # Step 5 — Symptom flow
     state = get_clinical_state(session_id)
+
+    # Detect subcategory from conversation, not just intent string
+    if not state or not state.get("subcategory"):
+        detected_subcategory = detect_subcategory(full_conversation)
+        if not detected_subcategory:
+            if "pregnancy" in intent:
+                detected_subcategory = "pregnancy"
+            elif "child" in intent:
+                detected_subcategory = "child"
+    else:
+        detected_subcategory = state.get("subcategory")
+
+    # Build reliable intent string for RAG subcategory resolution
+    if detected_subcategory == "pregnancy":
+        effective_intent = "pregnancy_symptom"
+    elif detected_subcategory == "child":
+        effective_intent = "child_symptom"
+    else:
+        effective_intent = intent
+
     if not state:
         state = {
             "stage": "triage",
             "intent": intent,
+            "subcategory": detected_subcategory,
             "symptom_topic": None,
             "reported_symptoms": [],
             "internal_diagnosis": None,
@@ -289,6 +342,9 @@ Never replace emergency services.
             "questions_asked": 0,
             "concluded": False
         }
+    else:
+        if detected_subcategory and not state.get("subcategory"):
+            state["subcategory"] = detected_subcategory
 
     # Step 6 — Extract all symptoms from full conversation
     symptoms_result = call_llm_json([
@@ -316,7 +372,7 @@ Be thorough — include every symptom mentioned in any message."""
 
     # Step 7 — TRIAGE
     if state["stage"] == "triage":
-        rag_context = do_retrieve("triage", message, intent, full_conversation, symptom_topic, reported_symptoms)
+        rag_context = do_retrieve("triage", message, effective_intent, full_conversation, symptom_topic, reported_symptoms)
 
         triage_result = call_llm_json([
             {"role": "system", "content": UMMA_SYSTEM_PROMPT},
@@ -379,13 +435,13 @@ DO NOT use hollow reassuring phrases.
         symptom_context = retrieve_for_stage(
             stage="triage",
             query=message,
-            intent=intent,
+            intent=effective_intent,
             topic=symptom_topic,
             symptoms=reported_symptoms,
             conversation=full_conversation
         )
         rag_context = do_retrieve(
-            "disease_reasoning", message, intent, full_conversation,
+            "disease_reasoning", message, effective_intent, full_conversation,
             symptom_topic, reported_symptoms
         )
 
@@ -412,6 +468,7 @@ DO NOT use hollow reassuring phrases.
         needs_more = reasoning_result.get("needs_more_info", False)
         next_question = reasoning_result.get("next_question")
 
+        # If under minimum and LLM returned no question, force one
         if (
             questions_so_far < MIN_REASONING_QUESTIONS
             and not next_question
@@ -435,6 +492,16 @@ DO NOT use hollow reassuring phrases.
             and questions_so_far < MAX_REASONING_QUESTIONS
             and next_question
         )
+
+        # Hard block — never proceed to management under minimum questions
+        if questions_so_far < MIN_REASONING_QUESTIONS and not next_question:
+            print(f"WARNING: Under minimum questions ({questions_so_far}/{MIN_REASONING_QUESTIONS}) and no question available — using safe fallback question")
+            next_question = (
+                "That is helpful to know. "
+                "I want to make sure I understand your situation fully before giving you guidance. "
+                "Can you tell me how long you have had these symptoms, and whether they have been getting better or worse?"
+            )
+            should_ask = True
 
         if should_ask:
             state["questions_asked"] += 1
@@ -461,7 +528,7 @@ DO NOT use hollow reassuring phrases.
     # Step 9 — MANAGEMENT
     if state["stage"] in ["management", "concluded"]:
         rag_context = do_retrieve(
-            "management", message, intent, full_conversation,
+            "management", message, effective_intent, full_conversation,
             state.get("symptom_topic"),
             state.get("reported_symptoms", []),
             extra_context={
