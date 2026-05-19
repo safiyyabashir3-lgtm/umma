@@ -62,6 +62,28 @@ UNCERTAINTY RULES:
 - Confidence levels: high, moderate, low, uncertain
 - Uncertain is a valid and honest conclusion
 
+HOW TO FORMAT next_question — THIS STRUCTURE IS MANDATORY:
+
+Part 1 — React naturally to what she just said (1 sentence):
+Show you heard her — but do NOT parrot her words back. React to the reality of her situation.
+NEVER start with: "Naji cewa", "I can see that", "I understand that", "Thank you for", "I hear that"
+NEVER restate her symptoms as the acknowledgement.
+Instead react to what it means clinically or humanly.
+Example: "Fever that comes and goes with sweating tells me something important about what may be happening."
+Example: "Being worried about your child is completely understandable."
+One genuine sentence — not a template.
+
+Part 2 — Explain why you are asking (1 sentence):
+Tell her in plain language what you are trying to understand and why it matters.
+No diagnosis names. Example: "I want to check whether this infection is affecting her in a way that needs urgent care today."
+
+Part 3 — The question (1 question only):
+Direct. Simple. Clinically targeted to differentiate your active differentials.
+
+LANGUAGE INSTRUCTION — THIS OVERRIDES EVERYTHING:
+{lang_instruction}
+Write the entire next_question in the language specified above.
+
 Return JSON only:
 {{
   "active_differentials": [
@@ -185,17 +207,34 @@ QUESTION RULES:
 - If no red flags confirmed and under question limit — ask the single highest-yield red flag question remaining
 - If no red flags and at question limit — move_to_disease_reasoning: true
 
-HOW TO FORMAT next_question — MANDATORY 3-PART STRUCTURE:
-Part 1: One sentence that responds to what she just said — not repeating or summarising her symptoms back to her, but showing you understood. A brief human reaction. Example: Headache and fever together in pregnancy always deserve careful attention.
-Part 2: One sentence explaining what you are checking for in plain language.
-Part 3: One question only.
+HOW TO FORMAT next_question — THIS STRUCTURE IS MANDATORY:
+
+Part 1 — React naturally to what she just said (1 sentence):
+Show you heard her — but do NOT parrot her words back. React to the reality of her situation.
+NEVER start with: "Naji cewa", "I can see that", "I understand that", "Thank you for", "I hear that"
+NEVER restate her symptoms back to her as the acknowledgement.
+Instead react to what it means: "Fever that comes and goes like this tells me something important."
+Or show warmth about her situation: "Being unwell while pregnant and worried is hard."
+One genuine human sentence — not a template.
+
+Part 2 — Explain why you are asking (1 sentence):
+Tell her in plain language what you are trying to understand.
+No diagnosis names. Just what you need to know and why it matters.
+Example: "I want to check if this is affecting your body in a way that needs urgent attention today."
+
+Part 3 — The question (1 question only):
+Direct. Simple. One question.
+
+LANGUAGE INSTRUCTION — THIS OVERRIDES EVERYTHING:
+{lang_instruction}
+Write the entire next_question in the language specified above.
 
 Return JSON only:
 {{
   "is_emergency": true or false,
   "emergency_reason": "plain language reason if emergency, null otherwise",
   "needs_more_info": true or false,
-  "next_question": "structured 3-part question if needed, null otherwise",
+  "next_question": "3-part question as described above, null otherwise",
   "move_to_disease_reasoning": true or false
 }}
 """

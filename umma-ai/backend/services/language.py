@@ -1,4 +1,5 @@
 import os
+import json
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 from supabase import create_client
@@ -53,11 +54,13 @@ def save_user_language(user_id: str, language: str):
     except Exception as e:
         print(f"Error saving language: {e}")
 
-def detect_language_choice(message: str) -> str:
+def detect_message_language(message: str) -> str:
     """
-    Uses GPT-4.1 to detect explicit language selection.
-    Handles English, Hausa, and mixed expressions naturally.
-    Returns 'en', 'ha', or None if no explicit choice made.
+    Detects which language a message is written in OR if user is explicitly choosing a language.
+    Returns 'en', 'ha', or None if genuinely unclear.
+    This handles both:
+    - Explicit selections: "English", "Hausa", "speak Hausa to me"
+    - Implicit detection: user writes in Hausa or English
     """
     try:
         response = client.chat.completions.create(
@@ -65,21 +68,28 @@ def detect_language_choice(message: str) -> str:
             messages=[
                 {
                     "role": "system",
-                    "content": """You detect whether a user is explicitly choosing a language.
-The app supports English and Hausa.
+                    "content": """You detect the language of a user message for a Nigerian health app that supports English and Hausa.
+
 Return JSON only: {"language": "en"} or {"language": "ha"} or {"language": null}
 
-Return "en" if the user is choosing English in any way — e.g. "English", "I want English", "speak English to me", "English please"
-Return "ha" if the user is choosing Hausa in any way — e.g. "Hausa", "Hausa ne", "da Hausa", "in Hausa", "Ina son Hausa"
-Return null if the message is not a language selection — e.g. "I have a fever", "hello", "what is malaria"
-Also return "en" or "ha" if user wants to switch language mid-conversation."""
+Return "en" if:
+- The message is written in English
+- The user is explicitly choosing English e.g. "English", "speak English"
+
+Return "ha" if:
+- The message is written in Hausa
+- The user is explicitly choosing Hausa e.g. "Hausa", "Hausa ne", "da Hausa"
+
+Return null only if:
+- The message is so short or ambiguous that language cannot be determined e.g. "ok", "yes", "no", numbers only
+
+Important: Even short health messages have enough signal. "I have fever" = en. "Ina da zazzabi" = ha."""
                 },
                 {"role": "user", "content": message}
             ],
             temperature=0,
             max_tokens=20
         )
-        import json
         raw = response.choices[0].message.content.strip()
         clean = raw.replace("```json", "").replace("```", "").strip()
         result = json.loads(clean)
@@ -87,6 +97,13 @@ Also return "en" or "ha" if user wants to switch language mid-conversation."""
         return lang if lang in ["en", "ha"] else None
     except:
         return None
+
+def detect_language_choice(message: str) -> str:
+    """
+    Wrapper kept for compatibility.
+    Now uses full language detection instead of explicit-only detection.
+    """
+    return detect_message_language(message)
 
 def language_instruction(language: str) -> str:
     if language == "ha":
@@ -104,24 +121,19 @@ def language_instruction(language: str) -> str:
 def handle_first_message(user_id: str, message: str) -> tuple:
     """
     Called when user has no language preference yet.
-    Returns (language, response) or (None, welcome_message)
+    Detects language from the message itself — both explicit selections and natural language.
+    Returns (language, None) if language detected — caller proceeds normally with that language.
+    Returns (None, welcome_message) only if language genuinely cannot be determined.
     """
-    chosen = detect_language_choice(message)
+    detected = detect_message_language(message)
 
-    if chosen == "en":
+    if detected == "en":
         save_user_language(user_id, "en")
-        return "en", (
-            "I will speak with you in English.\n\n"
-            "I am UMMA, your trusted health companion for pregnancy "
-            "and child health. How can I help you today?"
-        )
+        return "en", None  # Return None so caller handles the message normally
 
-    if chosen == "ha":
+    if detected == "ha":
         save_user_language(user_id, "ha")
-        return "ha", (
-            "Zan yi magana da ke cikin Hausa.\n\n"
-            "Ni UMMA ce, abokin lafiyar ku na lokacin juna biyu "
-            "da lafiyar yara. Yaya zan iya taimaka muku yau?"
-        )
+        return "ha", None  # Return None so caller handles the message normally
 
+    # Genuinely unclear — show welcome screen
     return None, WELCOME_MESSAGE

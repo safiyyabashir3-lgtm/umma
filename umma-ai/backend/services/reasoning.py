@@ -107,7 +107,7 @@ def save_message(session_id: str, role: str, content: str):
         print(f"Error saving message for session {session_id}: {e}")
 
 
-def call_llm(messages: list, temperature: float = 0.3, max_tokens: int = 700) -> str:
+def call_llm(messages: list, temperature: float = 0.3, max_tokens: int = 1200) -> str:
     response = client.chat.completions.create(
         model=DEPLOYMENT,
         messages=messages,
@@ -130,7 +130,7 @@ def call_llm_safe(messages: list, temperature: float = 0.3, max_tokens: int = 70
 
 def call_llm_json(messages: list) -> dict:
     try:
-        raw = call_llm(messages, temperature=0, max_tokens=600)
+        raw = call_llm(messages, temperature=0, max_tokens=1000)
     except Exception as e:
         err = str(e)
         if "content_filter" in err or "ResponsibleAI" in err or "400" in err:
@@ -142,6 +142,25 @@ def call_llm_json(messages: list) -> dict:
         return json.loads(clean)
     except Exception as e:
         print(f"call_llm_json parse failed. Error: {e}. Raw response: {raw[:300]}")
+        # Attempt JSON repair — truncated JSON from long Hausa text
+        try:
+            # Find the last complete field before truncation
+            import re
+            # Extract next_question if present even if JSON is malformed
+            match = re.search(r'"next_question"\s*:\s*"((?:[^"\]|\.)*)"', raw)
+            is_emergency = '"is_emergency": true' in raw.lower()
+            needs_more = '"needs_more_info": true' in raw.lower()
+            if match or is_emergency or needs_more:
+                return {
+                    "is_emergency": is_emergency,
+                    "emergency_reason": None,
+                    "needs_more_info": needs_more,
+                    "next_question": match.group(1) if match else None,
+                    "move_to_disease_reasoning": False,
+                    "__repaired": True
+                }
+        except:
+            pass
         return {"__parse_failed": True}
 
 
@@ -218,15 +237,17 @@ def process_message(
     if not language:
         chosen_language, lang_response = handle_first_message(user_id, message)
         if not chosen_language:
+            # Genuinely cannot detect language — show welcome screen
             return lang_response, rag_debug
         language = chosen_language
+        # Language detected from message — fall through and handle message normally in detected language
 
-    # Only check short messages for language switching
-    if len(message.split()) <= 8:
-        language_switch = detect_language_choice(message)
-        if language_switch and language_switch != language:
-            save_user_language(user_id, language_switch)
-            language = language_switch
+    # Always check for language switch on every message
+    # detect_message_language detects both explicit switches and which language user is writing in
+    detected_language = detect_language_choice(message)
+    if detected_language and detected_language != language:
+        save_user_language(user_id, detected_language)
+        language = detected_language
 
     lang_instruction = language_instruction(language)
 
@@ -352,7 +373,12 @@ Never replace emergency services.
             "role": "system",
             "content": """Extract ALL symptoms mentioned across the entire conversation.
 Return JSON only: {"symptoms": ["symptom1", "symptom2"], "main_topic": "primary symptom in one word"}
-Be thorough — include every symptom mentioned in any message."""
+Rules:
+- Be thorough — include every symptom mentioned in any message
+- Symptoms can be in English or Hausa — extract them regardless of language
+- If the message is vague (e.g. "my child is not okay", "something is wrong") — return empty symptoms list
+- If the message is nonsensical or unclear — return empty symptoms list
+- Only extract genuine medical symptoms or complaints"""
         },
         *full_conversation
     ])
@@ -361,6 +387,29 @@ Be thorough — include every symptom mentioned in any message."""
     symptom_topic = symptoms_result.get("main_topic") or state.get("symptom_topic")
     state["reported_symptoms"] = reported_symptoms
     state["symptom_topic"] = symptom_topic
+
+    # Clarification check — only on first message of a new session
+    # If no symptoms extracted and this is the first user message, ask for clarification
+    if state["stage"] == "triage" and state["questions_asked"] == 0 and not reported_symptoms:
+        clarification = call_llm_safe([
+            {"role": "system", "content": UMMA_SYSTEM_PROMPT + "\n\n" + lang_instruction}, 
+
+
+            {"role": "user", "content": f"""
+The user sent this message: {message}
+
+You could not identify a clear symptom or health concern from this message.
+Ask one warm, simple clarifying question to understand what health problem they need help with.
+Do not assume any symptom. Do not start clinical questioning.
+Do not name any condition.
+Just ask what is wrong or what help they need.
+Keep it to one sentence.
+{lang_instruction}
+"""}
+        ])
+        if clarification and clarification != CONTENT_FILTER_FALLBACK:
+            save_message(session_id, "assistant", clarification)
+            return clarification, rag_debug
 
     def safe_save_state(s):
         try:
@@ -381,7 +430,8 @@ Be thorough — include every symptom mentioned in any message."""
                 reported_symptoms=reported_symptoms,
                 rag_context=rag_context,
                 questions_asked=state["questions_asked"],
-                max_triage_questions=MAX_TRIAGE_QUESTIONS
+                max_triage_questions=MAX_TRIAGE_QUESTIONS,
+                lang_instruction=lang_instruction
             )}
         ])
 
@@ -456,7 +506,8 @@ DO NOT use hollow reassuring phrases.
                 symptom_context=symptom_context,
                 questions_asked=state["questions_asked"],
                 min_questions=MIN_REASONING_QUESTIONS,
-                max_questions=MAX_REASONING_QUESTIONS
+                max_questions=MAX_REASONING_QUESTIONS,
+                lang_instruction=lang_instruction
             )}
         ])
 
