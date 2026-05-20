@@ -507,6 +507,7 @@ DO NOT use hollow reassuring phrases.
                 questions_asked=state["questions_asked"],
                 min_questions=MIN_REASONING_QUESTIONS,
                 max_questions=MAX_REASONING_QUESTIONS,
+                previous_differentials=json.dumps(state.get("active_differentials", [])),
                 lang_instruction=lang_instruction
             )}
         ])
@@ -517,6 +518,9 @@ DO NOT use hollow reassuring phrases.
 
         questions_so_far = state["questions_asked"]
         needs_more = reasoning_result.get("needs_more_info", False)
+        # If model says it's done but confidence is low or uncertain — override and keep asking
+        if reasoning_result.get("confidence_level") in ["low", "uncertain"]:
+            needs_more = True
         next_question = reasoning_result.get("next_question")
 
         # If under minimum and LLM returned no question, force one
