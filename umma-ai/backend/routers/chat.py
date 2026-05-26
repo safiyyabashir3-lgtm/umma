@@ -3,11 +3,7 @@ sys.path.insert(0, ".")
 from logger import get_logger
 logger = get_logger(__name__)
 
-from fastapi import APIRouter, Request
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
-limiter = Limiter(key_func=get_remote_address)
+from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional, Any, Dict
 from services.intent import classify_intent
@@ -39,10 +35,6 @@ class ChatResponse(BaseModel):
     debug: Optional[Dict[str, Any]] = None
 
 def get_active_intent(session_id: str) -> str:
-    """
-    Retrieves the stored intent from clinical_state.
-    No keyword matching — reads what was saved when the conversation started.
-    """
     try:
         result = supabase.table("clinical_state")\
             .select("intent, concluded")\
@@ -53,7 +45,7 @@ def get_active_intent(session_id: str) -> str:
             if not state.get("concluded") and state.get("intent"):
                 return state.get("intent")
     except Exception as e:
-        print(f"Error getting active intent: {e}")
+        logger.error(f"Error getting active intent: {e}")
     return None
 
 def get_debug_info(session_id: str) -> dict:
@@ -82,20 +74,16 @@ def get_debug_info(session_id: str) -> dict:
     return {}
 
 @router.post("/chat", response_model=ChatResponse)
-@limiter.limit("20/hour")
-async def chat(request: ChatRequest, http_request: Request):
+async def chat(request: ChatRequest):
     session_id = request.session_id or str(uuid.uuid4())
 
     try:
-        # Upsert avoids a race condition where two concurrent requests with the same
-        # session_id both pass the select check and then both attempt an insert,
-        # causing a duplicate key error on the second request.
         supabase.table("sessions").upsert({
             "id": session_id,
             "user_id": request.user_id
         }, on_conflict="id").execute()
     except Exception as e:
-        print(f"Session upsert error: {e}")
+        logger.error(f"Session upsert error: {e}")
 
     active_intent = get_active_intent(session_id)
     if active_intent:
@@ -104,11 +92,10 @@ async def chat(request: ChatRequest, http_request: Request):
         try:
             intent = classify_intent(request.message)
         except Exception as e:
-            print(f"Intent classification failed: {e}")
-            # Safe default — routes to general symptom flow rather than crashing
+            logger.error(f"Intent classification failed: {e}")
             intent = "general_health"
             if any(w in request.message.lower() for w in ["bleeding", "convuls", "fit", "seiz", "breath", "movement", "baby not moving"]):
-                intent = "emergency" 
+                intent = "emergency"
 
     response, rag_debug = process_message(
         user_id=request.user_id,

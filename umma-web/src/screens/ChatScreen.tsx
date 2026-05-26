@@ -10,6 +10,7 @@ import './ChatScreen.css';
 
 interface Props {
   language: Language;
+  onLanguageToggle: () => void;
 }
 
 const USER_ID = (() => {
@@ -57,7 +58,7 @@ const SendIcon = () => (
   </svg>
 );
 
-export default function ChatScreen({ language }: Props) {
+export default function ChatScreen({ language, onLanguageToggle }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -93,7 +94,6 @@ export default function ChatScreen({ language }: Props) {
   const processAndRespond = async (text: string, fromVoice: boolean) => {
     if (!text.trim() || isTyping) return;
 
-    // Interrupt any ongoing speech
     stopSpeaking();
     setIsSpeaking(false);
 
@@ -110,8 +110,8 @@ export default function ChatScreen({ language }: Props) {
         const concluded = data.debug?.concluded;
         if (concluded && tier) {
           setTimeout(() => {
-          setAlertTier(tier);
-          setAlertDebug(data.debug);
+            setAlertTier(tier);
+            setAlertDebug(data.debug);
           }, 3000);
         }
       }
@@ -125,7 +125,6 @@ export default function ChatScreen({ language }: Props) {
 
       setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
 
-      // Only speak in English voice mode
       if (fromVoice && language === 'en') {
         setIsSpeaking(true);
         speak(data.response).finally(() => setIsSpeaking(false));
@@ -148,7 +147,6 @@ export default function ChatScreen({ language }: Props) {
   };
 
   const handleMic = () => {
-    // Hausa — show coming soon message
     if (language === 'ha') {
       setVoiceError('Zaki iya hira da UMMA a yaren Hausa ta murya anan gaba kadan!');
       setTimeout(() => setVoiceError(null), 4000);
@@ -209,6 +207,12 @@ export default function ChatScreen({ language }: Props) {
         </div>
         <div className="chat-header__actions">
           {isSpeaking && <span className="chat-speaking-indicator">◉ speaking</span>}
+          <button
+            className="chat-header__btn chat-header__btn--lang"
+            onClick={onLanguageToggle}
+          >
+            {language === 'en' ? 'HA' : 'EN'}
+          </button>
           <button className="chat-header__btn" onClick={() => setShowReviewer(true)}>Review</button>
           <button className="chat-header__btn" onClick={handleNewSession}>New</button>
         </div>

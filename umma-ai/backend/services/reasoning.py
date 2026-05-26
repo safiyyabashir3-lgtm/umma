@@ -217,6 +217,11 @@ def process_message(
     message: str,
     intent: str
 ) -> tuple:
+    # Ensure session exists before any DB writes
+    try:
+        supabase.table("sessions").upsert({"id": session_id, "user_id": user_id}, on_conflict="id").execute()
+    except Exception as e:
+        print(f"Session upsert in process_message failed: {e}")
     rag_debug = {"category": "—", "topic": "—", "chunks": []}
 
     def do_retrieve(stage, query, intent, conversation, topic=None, symptoms=None, extra_context=None):

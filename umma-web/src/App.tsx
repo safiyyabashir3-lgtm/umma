@@ -13,11 +13,17 @@ function App() {
     setLanguage(lang);
   };
 
+  const handleLanguageToggle = () => {
+    const next: Language = language === 'en' ? 'ha' : 'en';
+    localStorage.setItem('umma_language', next);
+    setLanguage(next);
+  };
+
   if (!language) {
     return <LanguageScreen onSelect={handleLanguageSelect} />;
   }
 
-  return <ChatScreen language={language} />;
+  return <ChatScreen language={language} onLanguageToggle={handleLanguageToggle} />;
 }
 
 export default App;
