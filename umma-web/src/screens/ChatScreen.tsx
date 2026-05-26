@@ -84,13 +84,16 @@ export default function ChatScreen({ language }: Props) {
   }, [messages, isTyping]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (isSpeaking) { stopSpeaking(); setIsSpeaking(false); }
-    setVoiceError(null);
     setInput(e.target.value);
   };
 
   const processAndRespond = async (text: string, fromVoice: boolean) => {
     if (!text.trim() || isTyping) return;
+
+    // Interrupt any ongoing speech
+    stopSpeaking();
+    setIsSpeaking(false);
+
     setMessages(prev => [...prev, { role: 'user', content: text }]);
     setInput('');
     setIsTyping(true);
@@ -109,10 +112,12 @@ export default function ChatScreen({ language }: Props) {
 
       setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
 
-      if (fromVoice) {
+      // Only speak in English voice mode
+      if (fromVoice && language === 'en') {
         setIsSpeaking(true);
-        speak(data.response, language).finally(() => setIsSpeaking(false));
+        speak(data.response).finally(() => setIsSpeaking(false));
       }
+
     } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -121,28 +126,34 @@ export default function ChatScreen({ language }: Props) {
           : 'Wani abu ya kasa. Don Allah sake gwadawa.'
       }]);
     }
+
     setIsTyping(false);
   };
 
   const handleSend = () => {
-    stopSpeaking();
-    setIsSpeaking(false);
     processAndRespond(input, false);
   };
 
   const handleMic = () => {
+    // Hausa — show coming soon message
+    if (language === 'ha') {
+      setVoiceError('Zaki iya hira da UMMA a yaren Hausa ta murya anan gaba kadan!');
+      setTimeout(() => setVoiceError(null), 4000);
+      return;
+    }
+
     if (isRecording) {
       recognizerRef.current?.close();
       setIsRecording(false);
       return;
     }
+
     setVoiceError(null);
     stopSpeaking();
     setIsSpeaking(false);
     setIsRecording(true);
 
     recognizerRef.current = startListening(
-      language,
       (text: string) => {
         setIsRecording(false);
         processAndRespond(text, true);
@@ -150,9 +161,7 @@ export default function ChatScreen({ language }: Props) {
       (reason: string) => {
         console.error('Voice error:', reason);
         setIsRecording(false);
-        setVoiceError(language === 'en'
-          ? 'Could not hear you. Please try again.'
-          : 'Ban ji ba. Don Allah sake gwadawa.');
+        setVoiceError('Could not hear you. Please try again.');
         setTimeout(() => setVoiceError(null), 3000);
       }
     );
@@ -224,9 +233,7 @@ export default function ChatScreen({ language }: Props) {
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKey}
-          placeholder={isRecording
-            ? (language === 'en' ? 'Listening...' : 'Ina sauraro...')
-            : placeholderText}
+          placeholder={isRecording ? 'Listening...' : placeholderText}
         />
         <button
           className="chat-send-btn"
