@@ -1,0 +1,11 @@
+.emergency-banner {
+  background: #C62828;
+  color: #ffffff;
+  text-align: center;
+  padding: 14px 20px;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.4;
+  flex-shrink: 0;
+}

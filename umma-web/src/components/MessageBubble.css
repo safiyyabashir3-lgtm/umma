@@ -1,0 +1,62 @@
+.bubble-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 88%;
+}
+
+.bubble-wrap--user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.bubble-wrap--umma {
+  align-self: flex-start;
+}
+
+.bubble-avatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.bubble {
+  padding: 12px 16px;
+  font-size: 17px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  border-radius: 18px;
+  position: relative;
+}
+
+.bubble--user {
+  background: #1A3A2A;
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.bubble--umma {
+  background: #ffffff;
+  color: #1A2430;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.bubble-time {
+  display: block;
+  font-size: 11px;
+  margin-top: 4px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.bubble-time--user {
+  color: rgba(255,255,255,0.55);
+  text-align: right;
+}
+
+.bubble-time--umma {
+  color: #9B9189;
+}
