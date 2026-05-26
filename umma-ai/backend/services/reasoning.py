@@ -1,3 +1,8 @@
+import sys
+sys.path.insert(0, ".")
+from logger import get_logger
+logger = get_logger(__name__)
+
 import os
 import json
 import time

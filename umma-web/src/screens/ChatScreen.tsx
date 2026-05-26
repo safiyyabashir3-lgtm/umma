@@ -5,6 +5,7 @@ import { startListening, speak, stopSpeaking } from '../services/voice';
 import MessageBubble from '../components/MessageBubble';
 import TypingIndicator from '../components/TypingIndicator';
 import EmergencyBanner from '../components/EmergencyBanner';
+import AlertPopup from '../components/AlertPopup';
 import './ChatScreen.css';
 
 interface Props {
@@ -68,6 +69,8 @@ export default function ChatScreen({ language }: Props) {
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [alertTier, setAlertTier] = useState<string | null>(null);
+  const [alertDebug, setAlertDebug] = useState<DebugInfo | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const recognizerRef = useRef<any>(null);
 
@@ -101,7 +104,17 @@ export default function ChatScreen({ language }: Props) {
     try {
       const data = await sendMessage(text, USER_ID, sessionId);
       if (data.session_id) setSessionId(data.session_id);
-      if (data.debug) setDebugHistory(prev => [...prev, data.debug]);
+      if (data.debug) {
+        setDebugHistory(prev => [...prev, data.debug]);
+        const tier = data.debug?.action_tier;
+        const concluded = data.debug?.concluded;
+        if (concluded && tier) {
+          setTimeout(() => {
+          setAlertTier(tier);
+          setAlertDebug(data.debug);
+          }, 3000);
+        }
+      }
 
       if (data.debug?.action_tier === 'emergency') {
         setIsEmergency(true);
@@ -174,6 +187,8 @@ export default function ChatScreen({ language }: Props) {
     setIsEmergency(false);
     setEmergencyText('');
     setDebugHistory([]);
+    setAlertTier(null);
+    setAlertDebug(null);
     setIsSpeaking(false);
     setVoiceError(null);
   };
@@ -206,6 +221,16 @@ export default function ChatScreen({ language }: Props) {
       </div>
 
       {isEmergency && <EmergencyBanner text={emergencyText} />}
+      {alertTier && alertDebug && sessionId && (
+        <AlertPopup
+          actionTier={alertTier}
+          debugInfo={alertDebug}
+          sessionId={sessionId}
+          userId={USER_ID}
+          language={language}
+          onDismiss={() => { setAlertTier(null); setAlertDebug(null); }}
+        />
+      )}
       {voiceError && <div className="chat-voice-error">{voiceError}</div>}
 
       <div className="chat-messages">

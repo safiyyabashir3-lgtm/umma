@@ -1,4 +1,13 @@
-from fastapi import APIRouter
+import sys
+sys.path.insert(0, ".")
+from logger import get_logger
+logger = get_logger(__name__)
+
+from fastapi import APIRouter, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
 from pydantic import BaseModel
 from typing import Optional, Any, Dict
 from services.intent import classify_intent
@@ -73,7 +82,8 @@ def get_debug_info(session_id: str) -> dict:
     return {}
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+@limiter.limit("20/hour")
+async def chat(request: ChatRequest, http_request: Request):
     session_id = request.session_id or str(uuid.uuid4())
 
     try:
