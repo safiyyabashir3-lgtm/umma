@@ -52,7 +52,7 @@ function resolveAlert(actionTier: string, debugInfo: DebugInfo) {
           ha: (ref: string) => `Lambar UMMA naku ita ce *${ref}*.\n\nAn sanar da ofishin rikodin AKTH. Lokacin da kuka iso, ku ba ma'aikacin rikodin wannan lambar don su samu bayanankku da sauri.`
         }
       };
-    case 'home_care':
+    case 'home_care_disabled_temporarily':
       return {
         alertType: 'chw' as const,
         workerRole: 'chew' as const,
@@ -68,7 +68,7 @@ function resolveAlert(actionTier: string, debugInfo: DebugInfo) {
           ha: (ref: string) => `Lambar UMMA naku ita ce *${ref}*.\n\nAn sanar da ma'aikaciyar lafiya kuma za ta tuntuɓe ku. Tana iya tambayar wannan lambar lokacin da ta tuntube ku.`
         }
       };
-    case 'monitor':
+    case 'monitor_disabled_temporarily':
       return {
         alertType: 'chw' as const,
         workerRole: 'nurse' as const,
@@ -84,7 +84,7 @@ function resolveAlert(actionTier: string, debugInfo: DebugInfo) {
           ha: (ref: string) => `Lambar UMMA naku ita ce *${ref}*.\n\nAn sanar da jinya kuma za ta tuntuɓe ku. Tana iya tambayar wannan lambar lokacin da ta tuntube ku.`
         }
       };
-    case 'uncertain':
+    case 'uncertain_disabled_temporarily':
       return {
         alertType: 'chw' as const,
         workerRole: (isPregnancy ? 'midwife' : 'nurse') as 'midwife' | 'nurse',
