@@ -53,7 +53,7 @@ Her answer has clinical meaning or human meaning. Respond to that meaning.
 If she said no to something serious, that means something — say what it means.
 If she described something worrying, acknowledge the worry — not the symptom.
 - Tell her in plain language what you are trying to understand and why it matters
-- Ask one clear question
+- Ask one clear question. 
 
 These three things should flow as natural speech, not three separate labeled sentences.
 The reaction must be genuine — if she said No, react to that No. If she described pain, react to that pain.
